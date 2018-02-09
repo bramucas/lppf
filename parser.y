@@ -96,8 +96,8 @@ fname :
   
 rule :
     head								{ruleline=yyline; printf("rule(%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
-  | head {ruleline=yyline} IF body		{printf("rule(%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
-  | IF {ruleline=yyline} body			{printf("rule(%d/%d,[],[%s]).\n",rulenum++,ruleline,$3);}
+  | head {ruleline=yyline;} IF body		{printf("rule(%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
+  | IF {ruleline=yyline;} body			{printf("rule(%d/%d,[],[%s]).\n",rulenum++,ruleline,$3);}
   ;
 
 atom :

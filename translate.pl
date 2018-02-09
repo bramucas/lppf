@@ -137,7 +137,7 @@ t_rule(predic(A),B,[(A1 :- B2)]) :-
 	t_body(B,B1),
 	append(B1,Gs,B2).
 		
-% Assignment
+%  Assignment
 t_rule(assign(fterm(F,Args),T),B,[(A1 :- B1)]) :-
     concat_atom(['holds_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
