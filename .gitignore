@@ -1,0 +1,11 @@
+/*
+# Tacking ignore file
+!/.gitignore
+
+!/parser.y
+!/scanner.l
+
+# Source code
+!/*.c
+!/*.h
+!/*.pl
