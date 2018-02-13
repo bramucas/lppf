@@ -4,10 +4,13 @@
 #include <unistd.h>
 #include "getterms.h"
 
+#include <string.h>
+
 extern int yylex(void);
 
 int ruleline=1;
 int rulenum=0;
+char *bufferDefaultValue = ""; 
 char *predicate;
 
 extern int yyrestart(FILE *);
@@ -15,6 +18,27 @@ int yyerror (char *s)  /* Called by yyparse on error */
 {
   fprintf (stderr,"%d: %s after `%s'\n", yyline, s, yytext);
   return 1;
+}
+
+/* Build the body of a rule handling with bufferDefaultValue */
+char* buildBody(char* body)
+{
+  char* finalBody;
+
+  finalBody = body;
+
+  /* Adding extras to the body */
+  if (strcmp(bufferDefaultValue,"") != 0)
+  {
+    if (strcmp(finalBody,"") != 0)
+      finalBody = strCat(finalBody, ",", bufferDefaultValue, NULL);
+    else
+      finalBody = bufferDefaultValue;
+    
+    bufferDefaultValue = "";
+  }
+
+  return finalBody;
 }
 
 %}
@@ -95,8 +119,8 @@ fname :
   | id '/' num  { $$=strCat($1,"/",$3,NULL); }
   
 rule :
-    head								{ruleline=yyline; printf("rule(%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
-  | head {ruleline=yyline;} IF body		{printf("rule(%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
+    head								{ruleline=yyline; printf("rule(%d/%d,%s,[%s]).\n", rulenum++, ruleline, $1, buildBody(""));}
+  | head {ruleline=yyline;} IF body		{printf("rule(%d/%d,%s,[%s]).\n", rulenum++, ruleline, $1, buildBody($4));}
   | IF {ruleline=yyline;} body			{printf("rule(%d/%d,[],[%s]).\n",rulenum++,ruleline,$3);}
   ;
 
@@ -131,6 +155,7 @@ body :
 head :
     predatom			{$$=strCat("predic(",$1,")",NULL);}
   | fterm ASSIGN term	{$$=strCat("assign(",$1,",",$3,")",NULL);}
+  | fterm '~' term {$$=strCat("assign(",$1,",",$3,")",NULL);bufferDefaultValue=strCat("not (", $1, "=\\=", $3, ")", NULL);}
   | fterm IN set		{$$=strCat("choice(",$1,",",$3,")",NULL);}
   ;
 
