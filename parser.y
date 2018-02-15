@@ -113,8 +113,9 @@ atom :
   ;
   
 predatom :
-    id					{$$=$1;}
-  | id '(' termlist ')'	{$$=strCat($1,"(",$3,")",NULL);}
+        id					{$$=$1;}
+  |     id '(' termlist ')'	{$$=strCat($1,"(",$3,",fterm(true,[])",")",NULL);}
+  | '!' id '(' termlist ')' {$$=strCat($2,"(",$4,",fterm(false,[])",")",NULL);}
   ;
   
 literal :
