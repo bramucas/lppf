@@ -24,7 +24,7 @@ loadfiles([Fname|Fs]):-
 preparse_files([],_):-!.
 preparse_files([F|Fs],TmpFile):-
 	(opt(quiet),!; writelist(['loading file ',F,'...']),nl),
-	concatall(['getterms < ',F,' >> ',TmpFile],Command),
+	concatall(['./getterms < ',F,' >> ',TmpFile],Command),
 	shell(Command),
 	preparse_files(Fs,TmpFile).
 
@@ -57,6 +57,7 @@ get_implicit_fnames:-
 	  ; true),!.
 
 get_implicit_fname( assign(fterm(F,L),_) ) :- length(L,N), assertfname(F/N).
+get_implicit_fname( def_assign(fterm(F,L),_) ) :- length(L,N), assertfname(F/N).
 get_implicit_fname( choice(fterm(F,L),_) ) :- length(L,N), assertfname(F/N).
 
 get_non0ary_fname(T):-
