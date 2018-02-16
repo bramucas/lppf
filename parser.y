@@ -86,7 +86,7 @@ sentence :
 	  ;
 
 fnames :
-      fname		{printf("%s(%s).\n",predicate,$1); }
+      fname		{printf("%s(%s).\n",predicate,$1);printf("%s\n", "es un fname"); }
     | fnames ',' fname	{printf("%s(%s).\n",predicate,$3); }
   ;  
 
@@ -113,10 +113,18 @@ atom :
   ;
   
 predatom :
-        id					{$$=$1;}
+        id					        {$$=strCat($1,"(fterm(true,[]))", NULL);}
+  | '!' id                  {$$=strCat($2,"(fterm(false,[]))", NULL);}   
   |     id '(' termlist ')'	{$$=strCat($1,"(",$3,",fterm(true,[])",")",NULL);}
   | '!' id '(' termlist ')' {$$=strCat($2,"(",$4,",fterm(false,[])",")",NULL);}
   ;
+
+/* Predatom antes de los cambios
+predatom :
+    id          {$$=$1;}
+  | id '(' termlist ')' {$$=strCat($1,"(",$3,")",NULL);}
+  ;
+*/
   
 literal :
     atom				{$$=$1;}
