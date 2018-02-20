@@ -3,6 +3,8 @@ varnum(0).
 prednum(0).
 
 translate :-
+  write('neg(true,false).\n'),
+  write('neg(false,true).\n'),
   repeat,
     (show(F), write_show_clause(F),fail; true),!, 
   repeat,
@@ -68,6 +70,18 @@ t_term(fterm(F,Args),vaux(AUXVAR),[G|Gs]):-
 	t_terms(Args,Args1,Gs),
 	append(Args1,[vaux(AUXVAR)],Args2),
 	concat_atom([holds_,F],F1),G =.. [F1|Args2].
+
+%t_term(neg(fterm(F,Args)),AUXVAR2,[G|Gs]):-
+%	newvar(AUXVAR),
+%	newvar(AUXVAR2),
+%	Negation = neg(AUXVAR,AUXVAR2),
+%	t_terms(Args,Args1,Gs),
+%	append(Args1,[vaux(AUXVAR)],Args2),
+%	concat_atom([holds_,F],F1),G =.. [F1|Args2].
+
+t_term(neg(Fterm),AUXVAR,[neg(AUXVAR2,AUXVAR)|Gs]) :-
+	newvar(AUXVAR),
+	t_term(Fterm,AUXVAR2,Gs).
 
 % A tuple of terms
 

@@ -48,8 +48,7 @@ char  	*strval; /* For returning a string */
 
 
 %type <strval> fname
-%type <strval> atom
-%type <strval> predatom
+%type <strval> atom 
 %type <strval> literal
 %type <strval> body
 %type <strval> head
@@ -101,7 +100,8 @@ rule :
   ;
 
 atom :
-    predatom			{$$=$1;}
+    fterm		        {$$=strCat($1,"= fterm(true,[])",NULL);}
+  | '!' fterm       {$$=strCat($2,"= fterm(false,[])",NULL);}
   | term '=' term		{$$=strCat($1,"=",$3,NULL);}
   | term NEQ term		{$$=strCat($1,"=\\=",$3,NULL);}
   | term '>' term		{$$=strCat($1,">",$3,NULL);}
@@ -111,21 +111,7 @@ atom :
   | EXISTS term			{$$=strCat($2,"=",$2,NULL);}
   | FORSOME vidlist '(' body ')'		{$$=strCat("forsome([",$2,"],[",$4,"])",NULL); }
   ;
-  
-predatom :
-        id					        {$$=strCat($1,"(fterm(true,[]))", NULL);}
-  | '!' id                  {$$=strCat($2,"(fterm(false,[]))", NULL);}   
-  |     id '(' termlist ')'	{$$=strCat($1,"(",$3,",fterm(true,[])",")",NULL);}
-  | '!' id '(' termlist ')' {$$=strCat($2,"(",$4,",fterm(false,[])",")",NULL);}
-  ;
-
-/* Predatom antes de los cambios
-predatom :
-    id          {$$=$1;}
-  | id '(' termlist ')' {$$=strCat($1,"(",$3,")",NULL);}
-  ;
-*/
-  
+    
 literal :
     atom				{$$=$1;}
   | NOT atom			        {$$=strCat("not (",$2,")",NULL);}
@@ -138,7 +124,8 @@ body :
   ;  
 
 head :
-    predatom			{$$=strCat("predic(",$1,")",NULL);}
+    fterm         {{$$=strCat("assign(",$1,", fterm(true,[]))",NULL);}}
+  | '!' fterm         {{$$=strCat("assign(",$2,", fterm(false,[]))",NULL);}}
   | fterm ASSIGN term	{$$=strCat("assign(",$1,",",$3,")",NULL);}
   | fterm IN set		{$$=strCat("choice(",$1,",",$3,")",NULL);}
   ;
@@ -177,6 +164,7 @@ aterm :
   | ABS '(' term ')'	{$$=strCat("abs(",$3,")",NULL);}
   | '|' term '|'		{$$=strCat("abs(",$2,")",NULL);}
   | '-' term  %prec UMINUS  {$$=strCat("(0-",$2,")",NULL);}
+  | '!' term        {$$=strCat("neg(",$2,")",NULL);}
   ;
   
 termlist :
