@@ -48,8 +48,7 @@ char  	*strval; /* For returning a string */
 
 
 %type <strval> fname
-%type <strval> atom
-%type <strval> predatom
+%type <strval> atom 
 %type <strval> literal
 %type <strval> body
 %type <strval> head
@@ -86,7 +85,7 @@ sentence :
 	  ;
 
 fnames :
-      fname		{printf("%s(%s).\n",predicate,$1); }
+      fname		{printf("%s(%s).\n",predicate,$1);printf("%s\n", "es un fname"); }
     | fnames ',' fname	{printf("%s(%s).\n",predicate,$3); }
   ;  
 
@@ -101,7 +100,8 @@ rule :
   ;
 
 atom :
-    predatom			{$$=$1;}
+    fterm		        {$$=strCat($1,"= fterm(true,[])",NULL);}
+  | '!' fterm       {$$=strCat($2,"= fterm(false,[])",NULL);}
   | term '=' term		{$$=strCat($1,"=",$3,NULL);}
   | term NEQ term		{$$=strCat($1,"=\\=",$3,NULL);}
   | term '>' term		{$$=strCat($1,">",$3,NULL);}
@@ -111,12 +111,7 @@ atom :
   | EXISTS term			{$$=strCat($2,"=",$2,NULL);}
   | FORSOME vidlist '(' body ')'		{$$=strCat("forsome([",$2,"],[",$4,"])",NULL); }
   ;
-  
-predatom :
-    id					{$$=$1;}
-  | id '(' termlist ')'	{$$=strCat($1,"(",$3,")",NULL);}
-  ;
-  
+    
 literal :
     atom				{$$=$1;}
   | NOT atom			        {$$=strCat("not (",$2,")",NULL);}
@@ -129,7 +124,8 @@ body :
   ;  
 
 head :
-    predatom			{$$=strCat("predic(",$1,")",NULL);}
+    fterm         {{$$=strCat("assign(",$1,", fterm(true,[]))",NULL);}}
+  | '!' fterm         {{$$=strCat("assign(",$2,", fterm(false,[]))",NULL);}}
   | fterm ASSIGN term	{$$=strCat("assign(",$1,",",$3,")",NULL);}
   | fterm '~' term {$$=strCat("def_assign(",$1,",",$3,")",NULL);}
   | fterm IN set		{$$=strCat("choice(",$1,",",$3,")",NULL);}
@@ -169,6 +165,7 @@ aterm :
   | ABS '(' term ')'	{$$=strCat("abs(",$3,")",NULL);}
   | '|' term '|'		{$$=strCat("abs(",$2,")",NULL);}
   | '-' term  %prec UMINUS  {$$=strCat("(0-",$2,")",NULL);}
+  | '!' term        {$$=strCat("neg(",$2,")",NULL);}
   ;
   
 termlist :
