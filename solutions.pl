@@ -21,7 +21,7 @@ get_next_fact :-
 	gettoken([0' ,10],T,D),!,
 	atom_to_term(T,Term,_),writefact(Term),
 	(D=0' ,!,get_next_fact; true).
-	 
+/*	 
 writefact(Term):-
 	(   Term =.. [F|_], functor_prefix(F,aux,_),!   % ignore auxiliary atoms
 	  ; Term =.. [F|_], functor_prefix(F,nholds,_),!   % ignore auxiliary atoms
@@ -38,7 +38,29 @@ writefact(Term):-
 	  ; opt(debug),!,write(Term),nl
 	  ; true
 	).
-  
+*/
+
+writefact(Term):-
+	(   Term =.. [F|_], functor_prefix(F,aux,_),!   % ignore auxiliary atoms
+	  ; Term =.. [F|_], functor_prefix(F,nholds,_),!   % ignore auxiliary atoms
+	  ; Term = -_X,!   % ignore auxiliary atoms	  
+	  ; Term =.. [F|Args],
+	    functor_prefix(F,atom_,F2),!,
+		Term2 =.. [F2|Args],
+		writelist([Term2,'.']),nl
+	  ; Term =.. [F|Args],
+	    functor_prefix(F,holds_,F2),!,
+		append(Args0,[Value],Args),
+		Term2 =.. [F2|Args0],
+		% If it is a boolean value change the output format
+		(	
+			Value = true  -> writelist([Term2,'.']),nl
+		;	Value = false -> writelist(['!',Term2,'.']),nl
+		;					 writelist([Term2,'=',Value,'.']),nl	
+		)
+	  ; opt(debug),!,write(Term),nl
+	  ; true
+	).
 
 
 gettoken(Delims,Tok,Delim):-
