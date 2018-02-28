@@ -131,6 +131,7 @@ body :
 head :
     predatom			{$$=strCat("predic(",$1,")",NULL);}
   | fterm ASSIGN term	{$$=strCat("assign(",$1,",",$3,")",NULL);}
+  | fterm '~' term {$$=strCat("def_assign(",$1,",",$3,")",NULL);}
   | fterm IN set		{$$=strCat("choice(",$1,",",$3,")",NULL);}
   ;
 
