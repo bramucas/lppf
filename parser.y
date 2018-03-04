@@ -36,6 +36,7 @@ char  	*strval; /* For returning a string */
 
 %token DOTS
 %token ASSIGN
+%token DEFVALUE
 %token ARROW
 %token GEQ
 %token LEQ
@@ -101,7 +102,7 @@ rule :
 
 atom :
     fterm		        {$$=strCat($1,"= fterm(true,[])",NULL);}
-  | '!' fterm       {$$=strCat($2,"= fterm(false,[])",NULL);}
+  | '~' fterm       {$$=strCat($2,"= fterm(false,[])",NULL);}
   | term '=' term		{$$=strCat($1,"=",$3,NULL);}
   | term NEQ term		{$$=strCat($1,"=\\=",$3,NULL);}
   | term '>' term		{$$=strCat($1,">",$3,NULL);}
@@ -125,9 +126,9 @@ body :
 
 head :
     fterm         {{$$=strCat("assign(",$1,", fterm(true,[]))",NULL);}}
-  | '!' fterm         {{$$=strCat("assign(",$2,", fterm(false,[]))",NULL);}}
+  | '~' fterm         {{$$=strCat("assign(",$2,", fterm(false,[]))",NULL);}}
   | fterm ASSIGN term	{$$=strCat("assign(",$1,",",$3,")",NULL);}
-  | fterm '~' term {$$=strCat("def_assign(",$1,",",$3,")",NULL);}
+  | fterm DEFVALUE term {$$=strCat("def_assign(",$1,",",$3,")",NULL);}
   | fterm IN set		{$$=strCat("choice(",$1,",",$3,")",NULL);}
   ;
 
@@ -165,7 +166,7 @@ aterm :
   | ABS '(' term ')'	{$$=strCat("abs(",$3,")",NULL);}
   | '|' term '|'		{$$=strCat("abs(",$2,")",NULL);}
   | '-' term  %prec UMINUS  {$$=strCat("(0-",$2,")",NULL);}
-  | '!' term        {$$=strCat("neg(",$2,")",NULL);}
+  | '~' term        {$$=strCat("neg(",$2,")",NULL);}
   ;
   
 termlist :
