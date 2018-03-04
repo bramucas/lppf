@@ -25,6 +25,7 @@ char  	*strval; /* For returning a string */
 
 
 %token ABS
+%token AGGREGATE
 %token EXISTS
 %token FORSOME
 %token FUNCTION
@@ -145,7 +146,8 @@ set :
   ;
 
 term :
-	vid					{$$=$1;}
+	  AGGREGATE '{' termlist ':' body '}' {$$=strCat("aggregate([", $3, "],[", $5, "])", NULL);}
+  | vid					{$$=$1;}
   | num					{$$=$1;}
   | fterm				{$$=$1;}
   | aterm				{$$=$1;}
