@@ -27,7 +27,6 @@ char  	*strval; /* For returning a string */
 %token ABS
 %token AGGREGATE
 %token EXISTS
-%token FORSOME
 %token FUNCTION
 %token IF
 %token IN
@@ -59,6 +58,8 @@ char  	*strval; /* For returning a string */
 %type <strval> fterm
 %type <strval> aterm
 %type <strval> termlist
+%type <strval> item
+%type <strval> itemlist
 %type <strval> id
 %type <strval> vidlist
 %type <strval> vid
@@ -110,15 +111,26 @@ atom :
   | term '<' term		{$$=strCat($1,"<",$3,NULL);}
   | term GEQ term		{$$=strCat($1,">=",$3,NULL);}
   | term LEQ term		{$$=strCat($3,">=",$1,NULL);}
-  | EXISTS term			{$$=strCat($2,"=",$2,NULL);}
-  | FORSOME vidlist '(' body ')'		{$$=strCat("forsome([",$2,"],[",$4,"])",NULL); }
+  | EXISTS '{' itemlist '}' {$$=strCat("exists([",$3,"])",NULL);}
   ;
     
 literal :
-    atom				{$$=$1;}
-  | NOT atom			        {$$=strCat("not (",$2,")",NULL);}
-  | NOT NOT atom	  	        {$$=strCat("not not  (",$3,")",NULL);}
+    atom				  {$$=$1;}
+  | NOT atom			{$$=strCat("not (",$2,")",NULL);}
+  | NOT NOT atom	{$$=strCat("not not  (",$3,")",NULL);}
   ;
+
+itemlist:
+    item              {$$=$1;}
+  | itemlist ';' item {$$=strCat($1,",",$3,NULL);}
+  ;
+
+item:
+    termlist ':' body {$$=strCat("item([",$1,"],[",$3,"])",NULL);}
+  | termlist          {$$=strCat("item([",$1,"],[])",NULL);}
+  | term              {$$=strCat("item([",$1,"],[])",NULL);}
+  ; 
+
 
 body :
     literal				{$$=$1;}
@@ -146,7 +158,7 @@ set :
   ;
 
 term :
-	  AGGREGATE '{' termlist ':' body '}' {$$=strCat("aggregate([", $3, "],[", $5, "])", NULL);}
+	  AGGREGATE '{' itemlist '}' {$$=strCat("aggregate(",$3,")", NULL);}
   | vid					{$$=$1;}
   | num					{$$=$1;}
   | fterm				{$$=$1;}

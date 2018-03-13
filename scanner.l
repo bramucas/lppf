@@ -27,9 +27,8 @@ or		{ return OR; }
 ".."		{ return DOTS; }
 ":="		{ return ASSIGN; }
 "^="		{ return DEFVALUE; }
-"\\E"		{ return EXISTS; }
-"#show"         { return SHOW; }
-"\\forsome"		{ return FORSOME; }
+"#exists"	{ return EXISTS; }
+"#show"     { return SHOW; }
 
 ">="		{ return GEQ; }	
 "<="		{ return LEQ; }	
