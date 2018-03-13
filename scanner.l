@@ -20,7 +20,7 @@ abs		{ return ABS; }
 in		{ return IN; }
 not		{ return NOT; }
 or		{ return OR; }
-"#sum"	{return AGGREGATE; }
+"#sum"	{return SUM; }
 "#function" {return FUNCTION;}
 
 ":-"		{ return IF; }

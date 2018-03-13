@@ -25,7 +25,7 @@ char  	*strval; /* For returning a string */
 
 
 %token ABS
-%token AGGREGATE
+%token SUM
 %token EXISTS
 %token FUNCTION
 %token IF
@@ -64,6 +64,7 @@ char  	*strval; /* For returning a string */
 %type <strval> vidlist
 %type <strval> vid
 %type <strval> num
+%type <strval> aggregate
 
 %left IF
 %left OR
@@ -111,7 +112,7 @@ atom :
   | term '<' term		{$$=strCat($1,"<",$3,NULL);}
   | term GEQ term		{$$=strCat($1,">=",$3,NULL);}
   | term LEQ term		{$$=strCat($3,">=",$1,NULL);}
-  | EXISTS '{' itemlist '}' {$$=strCat("exists([",$3,"])",NULL);}
+  | EXISTS '{' itemlist '}' {$$=strCat("agg(exists,[",$3,"])",NULL);}
   ;
     
 literal :
@@ -126,9 +127,9 @@ itemlist:
   ;
 
 item:
-    termlist ':' body {$$=strCat("item([",$1,"],[",$3,"])",NULL);}
-  | termlist          {$$=strCat("item([",$1,"],[])",NULL);}
-  | term              {$$=strCat("item([",$1,"],[])",NULL);}
+    termlist ':' body {$$=strCat("[",$1,"]:[",$3,"]",NULL);}
+  | termlist          {$$=strCat("[",$1,"]:[]",NULL);}
+  | term              {$$=strCat("[",$1,"]:[]",NULL);}
   ; 
 
 
@@ -158,7 +159,7 @@ set :
   ;
 
 term :
-	  AGGREGATE '{' itemlist '}' {$$=strCat("aggregate(",$3,")", NULL);}
+	  aggregate '{' itemlist '}' {$$=strCat("agg(",$1,",[",$3,"])", NULL);}
   | vid					{$$=$1;}
   | num					{$$=$1;}
   | fterm				{$$=$1;}
@@ -200,6 +201,10 @@ vidlist :
 vid : VID 		{ $$=strCat("v('",yylval.strval,"')",NULL); } ;
 
 num : NUMBER 		{ $$=yylval.strval; } ;
+
+aggregate :
+    SUM   {$$="sum";}
+  ;
 
 /* End of grammar */
 %%
