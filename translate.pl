@@ -106,7 +106,11 @@ t_atom(Term, ATOM ):-
 	),
 	subterms([vaux/1],A,AUXVARS),
 	( AUXVARS=[],Fs=[],!,ATOM=A; ATOM=exists(AUXVARS,[A|Fs])).
-	
+
+t_atom(agg(exists,[Ts:B]), ATOM) :- !,
+        t_terms(Ts,Ts1,H),
+        write(Ts1), nl, write(H),nl,fail.
+
 t_atom(A,ATOM):- !, 
 	A =.. [P|Args], t_terms(Args,Args1,Fs), 
 	concat_atom(['atom_',P],P1),
