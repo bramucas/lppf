@@ -4,6 +4,7 @@
 
 !/parser.y
 !/scanner.l
+!/Makefile
 
 # Docs
 !/*.md

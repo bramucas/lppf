@@ -61,7 +61,6 @@ char  	*strval; /* For returning a string */
 %type <strval> item
 %type <strval> itemlist
 %type <strval> id
-%type <strval> vidlist
 %type <strval> vid
 %type <strval> num
 %type <strval> aggregate
@@ -73,6 +72,7 @@ char  	*strval; /* For returning a string */
 %left '-' '+'
 %left '*' '/' '\\'
 %left UMINUS     /* unary minus */
+%left '~'
 
 /* Grammar follows */
 
@@ -129,7 +129,6 @@ itemlist:
 item:
     termlist ':' body {$$=strCat("[",$1,"]:[",$3,"]",NULL);}
   | termlist          {$$=strCat("[",$1,"]:[]",NULL);}
-  | term              {$$=strCat("[",$1,"]:[]",NULL);}
   ; 
 
 
@@ -159,7 +158,7 @@ set :
   ;
 
 term :
-	  aggregate '{' itemlist '}' {$$=strCat("agg(",$1,",[",$3,"])", NULL);}
+    aggregate '{' itemlist '}' {$$=strCat("agg(",$1,",[",$3,"])", NULL);}
   | vid					{$$=$1;}
   | num					{$$=$1;}
   | fterm				{$$=$1;}
@@ -192,11 +191,6 @@ termlist :
 id : 
     ID 		{ $$=yylval.strval; }
   ;
-
-vidlist :
-	  vid			    {$$=$1;}
-	| vidlist ',' vid	{$$=strCat($1,",",$3,NULL);}
-	;
 
 vid : VID 		{ $$=strCat("v('",yylval.strval,"')",NULL); } ;
 
