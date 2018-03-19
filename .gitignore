@@ -5,6 +5,7 @@
 !/parser.y
 !/scanner.l
 
+!/ex
 # Docs
 !/*.md
 
