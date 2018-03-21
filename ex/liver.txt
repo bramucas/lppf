@@ -255,28 +255,28 @@ psoft_risk(14, ascites_pretransplant, 					 3).
 
 %%%%%%%%%%%%%%%%%%%%%% Patient info selection %%%%%%%%%%%%%%%%%%%%%%
 
-sel_transplant(P)							:- bmi(P,X).
-sel_age(P,V)								:- sel_transplant(P), age(P,V).
-sel_bmi(P,V)								:- sel_transplant(P), bmi(P,V).
-sel_previous_transplants(P,V) 	 			:- sel_transplant(P), p_trans(P,V).
-sel_previous_abdominal_surgey(P) 			:- sel_transplant(P), ab_surgery(P).
-sel_albumin(P,V)			 				:- sel_transplant(P), albumin_fl(P,V).
+sel_transplant(P)	                        :- bmi(P,X).
+sel_age(P,V)								              :- sel_transplant(P), age(P,V).
+sel_bmi(P,V)								              :- sel_transplant(P), bmi(P,V).
+sel_previous_transplants(P,V)             :- sel_transplant(P), p_trans(P,V).
+sel_previous_abdominal_surgey(P) 			    :- sel_transplant(P), ab_surgery(P).
+sel_albumin(P,V)			 				            :- sel_transplant(P), albumin_fl(P,V).
 sel_dialysis_prior_transplantation(P) 		:- sel_transplant(P), dialysis(P).
 sel_intensive_care_unit_pretransplant(P)	:- sel_transplant(P), icu(P).
 sel_admitted_to_hospital_pretransplant(P)	:- sel_transplant(P), hospital(P).
-sel_meld(P,V)								:- sel_transplant(P), meld(P,V).
-sel_life_support_pretransplant(P) 			:- sel_transplant(P), l_sup(P).
-sel_encephalopathy(P)						:- sel_transplant(P), enceph(P).
-sel_portal_vein_thrombosis(P)				:- sel_transplant(P), p_thromb(P).
-sel_ascites_pretransplant(P)				:- sel_transplant(P), ascites(P).
-sel_utility(P,T)							:- sel_transplant(P), utility(P,T).
-sel_portal_bleed_48h_pretransplant(P)		:- sel_transplant(P), portal_bleed(P).
-sel_donor_age(P,V)							:- sel_transplant(P), donor_age(P,V).
+sel_meld(P,V)                             :- sel_transplant(P), meld(P,V).
+sel_life_support_pretransplant(P)         :- sel_transplant(P), l_sup(P).
+sel_encephalopathy(P)                     :- sel_transplant(P), enceph(P).
+sel_portal_vein_thrombosis(P)             :- sel_transplant(P), p_thromb(P).
+sel_ascites_pretransplant(P)              :- sel_transplant(P), ascites(P).
+sel_utility(P,T)                          :- sel_transplant(P), utility(P,T).
+sel_portal_bleed_48h_pretransplant(P)     :- sel_transplant(P), portal_bleed(P).
+sel_donor_age(P,V)                        :- sel_transplant(P), donor_age(P,V).
 sel_donor_cerebral_vascular_accident(P)		:- sel_transplant(P), vascular_acc(P).
-sel_donor_creatinine(P,V)					:- sel_transplant(P), creatinine_fl(P,V).
-%% sel_national_allocation(P)					:- sel_transplant(P).
-sel_cold_ischemia(P,V)						:- sel_transplant(P), cold_ischemia(P,V).
-sel_alive(P)								:- sel_transplant(P), alive(P).
+sel_donor_creatinine(P,V)                 :- sel_transplant(P), creatinine_fl(P,V).
+%% sel_national_allocation(P)             :- sel_transplant(P).
+sel_cold_ischemia(P,V)                    :- sel_transplant(P), cold_ischemia(P,V).
+sel_alive(P)                              :- sel_transplant(P), alive(P).
 
 
 
@@ -330,4 +330,6 @@ psoft_sum(R,P,SUM) :- psoft_sum(R-1,P,PSUM),
 
 
 
-psoft_cal(P,V) :- psoft_sum(R,P,V), R=14.
+psoft_cal(P,V) :- psoft_sum(R,P,V), R=14, P=711.
+
+#show psoft_cal/2.

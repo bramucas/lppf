@@ -86,7 +86,7 @@ sentence :
 	  ;
 
 fnames :
-      fname		{printf("%s(%s).\n",predicate,$1);printf("%s\n", "es un fname"); }
+      fname		{printf("%s(%s).\n",predicate,$1);}
     | fnames ',' fname	{printf("%s(%s).\n",predicate,$3); }
   ;  
 
