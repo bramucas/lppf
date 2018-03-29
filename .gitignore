@@ -5,7 +5,12 @@
 !/parser.y
 !/scanner.l
 
+# Examples directory
 !/ex
+
+# Makefile
+!/Makefile
+
 # Docs
 !/*.md
 
