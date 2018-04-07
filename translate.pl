@@ -8,16 +8,16 @@ translate :-
   repeat,
     (show(F), write_show_clause(F),fail; true),!, 
   repeat,
-    ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
+    ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,write_holds(A),nl,fail; true),!,
   repeat,
-    ( rule(_C,H,B), writelist(['% ',H,' :- ',B]),nl,
+    ( rule(C,H,B), writelist(['% ',H,' :- ',B]),nl,
 	  set_count(varnum,0),
 	  t_rule(H,B,Rs),
 	  member(R,Rs),
 	  remove_quantifiers([],R,Rs1),
 	  lparse_divides(Rs1,Rs2),
 	  member(RR,Rs2),
-	  write_rule(RR),nl,
+	  write_rule(RR,C),nl,
 	  fail
 	; true),!.
 
@@ -157,7 +157,7 @@ t_rule(def_assign(Fterm,T),B,L) :-
 
 %  Assignment
 t_rule(assign(fterm(F,Args),T),B,[(A1 :- B1)]) :-
-    concat_atom(['holds_',F],HOLDSF),
+    concat_atom(['fired_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	t_term(T,T1,Hs),
 	append(Args1,[T1],Args2),
@@ -181,7 +181,7 @@ t_rule(choice(fterm(F,Args),set(v(X),Cond)),B,[R1,R2,R3]) :-
 	map_subterms(replace_var,[v/1],Cond,Cond2),
 
     % Translate the head functional term
-    concat_atom(['holds_',F],HOLDSF),
+    concat_atom(['fired_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	append(Args1,[v(AUXVAR)],Args2),
 	A =.. [HOLDSF | Args2],
@@ -204,7 +204,7 @@ t_rule(choice(fterm(F,Args),set(List)),B,[R1,R2,R3|Rs]) :-
 	!,newvar(AUXVAR),
 	
     % Translate the head functional term
-    concat_atom(['holds_',F],HOLDSF),
+    concat_atom(['fired_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	append(Args1,[v(AUXVAR)],Args2),
 	A =.. [HOLDSF | Args2],
@@ -347,6 +347,39 @@ write_rule(R) :-
 	(H = [],!; write(H)),
 	(B1=[],!; write(' :- '),binop(',',B1,B2),write(B2)),
 	write('.').
+
+% With rule code
+write_rule(R,RuleNum/_LineNum) :-
+	map_subterms(replacevars,[v/1,vaux/1],R,R1),
+	R1=(H :- B),
+    replace_not_eq(B,B1),
+	(H = [],!;
+		H =.. [Holds | Args],
+		(sub_string(Holds,_,3,_,"aux"),!,write(H);
+			append(Args, [RuleNum], NewArgs),
+			NewHead =.. [Holds | NewArgs],
+			write(NewHead)
+		)
+	),
+	(B1=[],!; 
+		write(' :- '),
+		binop(',',B1,B2),
+		write(B2)
+	),
+	write('.').
+
+write_holds(Fname/N) :-
+	set_count(varnum,0),
+	VarNumber is N+1,
+	vartuple(VarNumber, Vars),
+	% Head
+	concat_atom(['holds_',Fname], HoldsF),
+	Head =.. [HoldsF | Vars],
+	% Body
+	concat_atom(['fired_',Fname], FiredF),
+	append(Vars,['N'],VarsN),
+	Body =.. [FiredF | VarsN],
+	writelist([Head, ' :- ', Body, '.']).
 
 replace_not_eq([],[]):-!.
 replace_not_eq([not (A=B)|Ls],[A '!=' B|Ms]):-!,replace_not_eq(Ls,Ms).
