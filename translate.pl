@@ -11,13 +11,13 @@ translate :-
     ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
   repeat,
     ( rule(C,H,B), writelist(['% ',H,' :- ',B]),nl,
+	  ruleFreeVars(H ,B, VarNames),
 	  set_count(varnum,0),
 	  t_rule(H,B,Rs),
 	  member(R,Rs),
 	  remove_quantifiers([],R,Rs1),
 	  lparse_divides(Rs1,Rs2),
 	  member(RR,Rs2),
-	  ruleFreeVars(H ,B, VarNames),
 	  write_rule(RR,C,VarNames),nl,
 	  fail
 	; true),!.
@@ -359,27 +359,25 @@ write_rule(R, RuleNum/_LineNum, FreeVarNames) :-
 	R1=(H :- B),
     replace_not_eq(B,B1),
 	% Head of fired rule
+	H =.. [Fired | Args],
 	(
-		H = [],!
+		% auxiliary pred
+		sub_string(Fired,_,3,_,"aux") ->
+		write(H)
 	;
-		H =.. [Fired | Args],
 		append(TrueArgs, [Value], Args),
-		(
-			% Do not add rule number if it is an auxiliary rule
-			sub_string(Fired,_,3,_,"aux"),!,write(H)
-		;
-			% Get fname
-			concat_atom(['fired_',Fname],Fired),
+		% Get fname
+		concat_atom(['fired_',Fname],Fired),
 
-			% Adding extra arguments
-			append(FreeVarNames, TrueArgs, All),
+		% Adding extra arguments
+		append(FreeVarNames, TrueArgs, All),
 
-			% Write fired rule head
-			concat_atom(['fired_',RuleNum],FiredHead),
-			NewHead =.. [FiredHead | All],
-			write(NewHead)
-		)
+		% Write fired rule head
+		concat_atom(['fired_',RuleNum],FiredHead),
+		NewHead =.. [FiredHead | All],
+		write(NewHead)	
 	),
+	
 	% Body of fired rule
 	(
 		B1=[],!
@@ -390,12 +388,17 @@ write_rule(R, RuleNum/_LineNum, FreeVarNames) :-
 	),
 	write('.'),nl,
 
-	% Write holds rule
-	length(FreeVarNames,Len),
-	write_holds(Fname,Value,FiredHead,Len),
+	(
+		sub_string(Fired,_,3,_,"aux") ->
+		true
+	;
+		% Write holds rule
+		length(FreeVarNames,Len),
+		write_holds(Fname,Value,FiredHead,Len),
 
-	% Saving rule info with the ruleNumber
-	assert(ruleInfo(RuleNum,Fname,Value,All,B1)).
+		% Saving rule info with the ruleNumber
+		assert(ruleInfo(RuleNum,Fname,Value,All,B1))
+	).
 
 
 % write_holds(Fname, Value, FiredHead, FiredFreeVarNumber)
