@@ -1,4 +1,4 @@
-:- dynamic varnum/1, prednum/1.
+:- dynamic varnum/1, prednum/1, body/2.
 varnum(0).
 prednum(0).
 
@@ -8,7 +8,7 @@ translate :-
   repeat,
     (show(F), write_show_clause(F),fail; true),!, 
   repeat,
-    ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,write_holds(A),nl,fail; true),!,
+    ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
   repeat,
     ( rule(C,H,B), writelist(['% ',H,' :- ',B]),nl,
 	  set_count(varnum,0),
@@ -17,7 +17,8 @@ translate :-
 	  remove_quantifiers([],R,Rs1),
 	  lparse_divides(Rs1,Rs2),
 	  member(RR,Rs2),
-	  write_rule(RR,C),nl,
+	  ruleFreeVars(H ,B, VarNames),
+	  write_rule(RR,C,VarNames),nl,
 	  fail
 	; true),!.
 
@@ -348,37 +349,79 @@ write_rule(R) :-
 	(B1=[],!; write(' :- '),binop(',',B1,B2),write(B2)),
 	write('.').
 
-% With rule code
-write_rule(R,RuleNum/_LineNum) :-
+% write_rule(Rule, Code, FreeVarNames)
+%	Writes the fired and holds rule for an input rule.
+%		- Rule: The translation of the original rule.
+%		- Code: format = RuleNumber/LineNumber.
+%		- FreeVarNames: List of free variables names for the rule.
+write_rule(R, RuleNum/_LineNum, FreeVarNames) :-
 	map_subterms(replacevars,[v/1,vaux/1],R,R1),
 	R1=(H :- B),
     replace_not_eq(B,B1),
-	(H = [],!;
-		H =.. [Holds | Args],
-		(sub_string(Holds,_,3,_,"aux"),!,write(H);
-			append(Args, [RuleNum], NewArgs),
-			NewHead =.. [Holds | NewArgs],
+	% Head of fired rule
+	(
+		H = [],!
+	;
+		H =.. [Fired | Args],
+		append(TrueArgs, [Value], Args),
+		(
+			% Do not add rule number if it is an auxiliary rule
+			sub_string(Fired,_,3,_,"aux"),!,write(H)
+		;
+			% Get fname
+			concat_atom(['fired_',Fname],Fired),
+
+			% Adding extra arguments
+			append(FreeVarNames, TrueArgs, All),
+
+			% Write fired rule head
+			concat_atom(['fired_',RuleNum],FiredHead),
+			NewHead =.. [FiredHead | All],
 			write(NewHead)
 		)
 	),
-	(B1=[],!; 
+	% Body of fired rule
+	(
+		B1=[],!
+	;
 		write(' :- '),
 		binop(',',B1,B2),
 		write(B2)
 	),
-	write('.').
+	write('.'),nl,
 
-write_holds(Fname/N) :-
+	% Write holds rule
+	length(FreeVarNames,Len),
+	write_holds(Fname,Value,FiredHead,Len),
+
+	% Saving rule info with the ruleNumber
+	assert(ruleInfo(RuleNum,Fname,Value,All,B1)).
+
+
+% write_holds(Fname, Value, FiredHead, FiredFreeVarNumber)
+%	Write the holds rule for a fired rule.
+%		- Fname
+%		- Value: Value of the function.
+%		- FiredHead: Head of fired rule.
+%		- FiredFreeVarNumber 
+write_holds(Fname, Value, FiredHead, FiredFreeVarNumber) :-
+	% Get function ariety.
+	fname(Fname/VarNumber),
+	
+	% Head varlist
 	set_count(varnum,0),
-	VarNumber is N+1,
 	vartuple(VarNumber, Vars),
 	% Head
 	concat_atom(['holds_',Fname], HoldsF),
-	Head =.. [HoldsF | Vars],
+	append(Vars, [Value], VarsAndValue),
+	Head =.. [HoldsF | VarsAndValue],
+	
+	% Body varlist
+	vartuple(FiredFreeVarNumber, ExtraVars),
 	% Body
-	concat_atom(['fired_',Fname], FiredF),
-	append(Vars,['N'],VarsN),
-	Body =.. [FiredF | VarsN],
+	append(ExtraVars,Vars,BodyVars),
+	Body =.. [FiredHead | BodyVars],
+
 	writelist([Head, ' :- ', Body, '.']).
 
 replace_not_eq([],[]):-!.
@@ -399,3 +442,20 @@ uniquevalue(F/N,R):-
 vartuple(0,[]):-!.
 vartuple(N,[V|Vs]):-newvar(V),M is N-1, vartuple(M,Vs).
 
+
+
+% ruleFreeVars(RuleHead, RuleBody, VarNames)
+%	Find free variable names of a rule given its head and body.
+ruleFreeVars(Head, Body, VarNames) :-
+	freevars(Head, HeadVars),
+	freevars(Body, BodyVars),
+	subtract(BodyVars, HeadVars, Vars),
+	auxVarNames(Vars, VarNames).
+
+% auxVarNames(VarList, VarNames)
+%	Return a list of 'VARX' form variable names, for a given variable list.
+auxVarNames([v(X)|T], VarNames) :-
+	concat_atom(['VAR',X], Var),
+	auxVarNames(T, MoreVarNames),
+	merge_set([Var], MoreVarNames, VarNames).
+auxVarNames([],[]).
