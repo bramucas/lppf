@@ -46,6 +46,7 @@ main([]):- !,
   write('  -o <filename>  output file.'),nl,
   write('  -q             supresses information header and messages.'),nl,
   write('  -t             just print the translation of functions into predicates.'),nl,
+  write('  -l             just print causes of labeled rules.'),nl,
   (opt(nohalt),!; halt(0)).
 
 main(Args):-
@@ -84,6 +85,7 @@ option('-q',quiet).
 option('-v',debug).
 option('-t',translation).
 option('--nohalt',nohalt).
+option('-l',labels).
 
 header :-
   write(' Logic Programs with Partial Functions 2.0'),nl,

@@ -354,7 +354,7 @@ write_rule(R) :-
 %		- Rule: The translation of the original rule.
 %		- Code: format = RuleNumber/LineNumber.
 %		- FreeVarNames: List of free variables names for the rule.
-write_rule(R, RuleNum/_LineNum, FreeVarNames) :-
+write_rule(R, Label/RuleNum/_LineNum, FreeVarNames) :-
 	map_subterms(replacevars,[v/1,vaux/1],R,R1),
 	R1=(H :- B),
     replace_not_eq(B,B1),
@@ -367,7 +367,7 @@ write_rule(R, RuleNum/_LineNum, FreeVarNames) :-
 	;
 		append(TrueArgs, [Value], Args),
 		% Get fname
-		concat_atom(['fired_',Fname],Fired),
+		concat_atom(['fired_',Fname],Fired), 
 
 		% Adding extra arguments
 		append(FreeVarNames, TrueArgs, All),
@@ -397,8 +397,7 @@ write_rule(R, RuleNum/_LineNum, FreeVarNames) :-
 		write_holds(Fname,Value,FiredHead,Len),
 
 		% Saving rule info with the ruleNumber
-		atom_string(RuleNum, RuleNumString),
-		assert(ruleInfo(RuleNumString,Fname,Value,All,B1))
+		assert(ruleInfo(Label,RuleNum,Fname,Value,All,B1))
 	).
 
 

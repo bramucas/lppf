@@ -29,7 +29,7 @@ writefact(Term):-
 	  ; Term = -_X,!   % ignore auxiliary atoms	  
 	  ; Term =.. [F|Values],
 	    functor_prefix(F,fired_,F2),!,
-		atom_string(F2,RuleNumber),
+		atom_number(F2,RuleNumber),
 		% Record values that fired the rule
 		assert(fired(RuleNumber, Values))
 	  ; Term =.. [F|Args],
@@ -53,9 +53,9 @@ writeCauses :-
 	repeat,
 	(
 		fired(RuleNumber, ArgValues),
-		ruleInfo(RuleNumber, Fname, FValue, _Vars, []),
+		ruleInfo(Label,RuleNumber, Fname, FValue, _Vars, []),
 		FiredTerm =.. [Fname|ArgValues],
-		assert(cause(FiredTerm, RuleNumber, [])),
+		assert(cause(FiredTerm,Label,RuleNumber,[])),
 		fail
 	;	true
 	),!,
@@ -63,13 +63,13 @@ writeCauses :-
 	repeat,
 	(
 		fired(RuleNumber, ArgValues),
-		ruleInfo(RuleNumber, Fname, FValue, VarNames, Body),
+		ruleInfo(Label, RuleNumber, Fname, FValue, VarNames, Body),
 		(
 			Body = [] -> true
 		;	
 			getCauses(ArgValues, VarNames, Body, Causes),
 			FiredTerm =.. [Fname|ArgValues],
-			assert(cause(FiredTerm,RuleNumber,Causes))
+			assert(cause(FiredTerm,Label,RuleNumber,Causes))
 		),
 		fail
 	;	true
@@ -77,8 +77,13 @@ writeCauses :-
 	% Writting causes
 	repeat,
 	(
-		cause(Term, RuleNumber, Causes),
-		writelist(['cause(', Term, ',', RuleNumber, ',', Causes, ').']),nl,
+		(
+			opt(labels) ->
+			dif(Label,'no_label')
+		;	true
+		),
+		cause(Term, Label, RuleNumber, Causes),
+		writelist(['cause(', Term, ',', Label, ',', RuleNumber, ',', Causes, ').']),nl,
 		fail
 	;	true
 	),!.
@@ -93,8 +98,8 @@ writeCauses :-
 getCauses(ArgValues, VarNames, Body, Causes) :-
 	simplifyBody(Body, SimplifiedBody),
 	replaceValues(ArgValues, VarNames, SimplifiedBody, Result),
-	maplist(cause, Result, RuleNumber, CausesLists),
-	buildCauses(Result, RuleNumber, CausesLists ,Causes).
+	maplist(cause, Result, Label, RuleNumber, CausesLists),
+	buildCauses(Result, Label, RuleNumber, CausesLists ,Causes).
 
 % replaceValues(ArgValues, VarNames, TermList, Result)
 %	Replace variables inside 'TermList' that match with anyone in 'VarNames' with the value in 'ArgValues' (based in order).
@@ -127,9 +132,9 @@ getVarValues(ArgValues, VarNames, [Var|T], [Var|Rest]) :-
 getVarValues(_, _, [], []).
 
 
-buildCauses([HItem|TItem], [HRuleNumber|TRuleNumber], [HCauses|TCauses], [cause(HItem,HRuleNumber,HCauses)|MoreCauses]) :-
-	buildCauses(TItem,TRuleNumber,TCauses,MoreCauses).
-buildCauses([],[],[],[]).
+buildCauses([HItem|TItem], [HLabel|TLabel], [HRuleNumber|TRuleNumber], [HCauses|TCauses], [cause(HItem,HLabel,HRuleNumber,HCauses)|MoreCauses]) :-
+	buildCauses(TItem,TLabel,TRuleNumber,TCauses,MoreCauses).
+buildCauses([],[],[],[],[]).
 
 
 % simplifyBody(Original, SimplifiedBody)
