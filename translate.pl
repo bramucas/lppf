@@ -397,7 +397,8 @@ write_rule(R, RuleNum/_LineNum, FreeVarNames) :-
 		write_holds(Fname,Value,FiredHead,Len),
 
 		% Saving rule info with the ruleNumber
-		assert(ruleInfo(RuleNum,Fname,Value,All,B1))
+		atom_string(RuleNum, RuleNumString),
+		assert(ruleInfo(RuleNumString,Fname,Value,All,B1))
 	).
 
 

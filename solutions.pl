@@ -29,7 +29,7 @@ writefact(Term):-
 	  ; Term = -_X,!   % ignore auxiliary atoms	  
 	  ; Term =.. [F|Values],
 	    functor_prefix(F,fired_,F2),!,
-		atom_number(F2,RuleNumber),
+		atom_string(F2,RuleNumber),
 		% Record values that fired the rule
 		assert(fired(RuleNumber, Values))
 	  ; Term =.. [F|Args],
