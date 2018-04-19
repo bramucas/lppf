@@ -34,6 +34,8 @@ char  	*strval; /* For returning a string */
 %token OR
 %token SHOW
 
+
+%token LABEL
 %token DOTS
 %token ASSIGN
 %token DEFVALUE
@@ -96,7 +98,9 @@ fname :
   
 rule :
     head								{ruleline=yyline; printf("rule(%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
+  | id LABEL head          {ruleline=yyline; printf("rule(%s/%d,%s,[]).\n",$1,ruleline,$3);}
   | head {ruleline=yyline;} IF body		{printf("rule(%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
+  | id LABEL head {ruleline=yyline;} IF body {printf("rule(%s/%d,%s,[%s]).\n",$1,ruleline,$3,$6);}
   | IF {ruleline=yyline;} body			{printf("rule(%d/%d,[],[%s]).\n",rulenum++,ruleline,$3);}
   ;
 

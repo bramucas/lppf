@@ -22,6 +22,7 @@ not		{ return NOT; }
 or		{ return OR; }
 "#function" {return FUNCTION;}
 
+"::"		{ return LABEL;}
 ":-"		{ return IF; }
 ".."		{ return DOTS; }
 ":="		{ return ASSIGN; }
