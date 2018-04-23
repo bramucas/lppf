@@ -52,6 +52,11 @@ writeCauses :-
 	% Facts first (rules without body)
 	repeat,
 	(
+		(
+			opt(labels) ->
+			dif(Label,'no_label')
+		;	true
+		),
 		fired(RuleNumber, ArgValues),
 		ruleInfo(Label,RuleNumber, Fname, FValue, _Vars, []),
 		FiredTerm =.. [Fname|ArgValues],
@@ -62,6 +67,11 @@ writeCauses :-
 	% Rules with body
 	repeat,
 	(
+		(
+			opt(labels) ->
+			dif(Label,'no_label')
+		;	true
+		),
 		fired(RuleNumber, ArgValues),
 		ruleInfo(Label, RuleNumber, Fname, FValue, VarNames, Body),
 		(
@@ -77,11 +87,6 @@ writeCauses :-
 	% Writting causes
 	repeat,
 	(
-		(
-			opt(labels) ->
-			dif(Label,'no_label')
-		;	true
-		),
 		cause(Term, Label, RuleNumber, Causes),
 		writelist(['cause(', Term, ',', Label, ',', RuleNumber, ',', Causes, ').']),nl,
 		fail
@@ -98,8 +103,29 @@ writeCauses :-
 getCauses(ArgValues, VarNames, Body, Causes) :-
 	simplifyBody(Body, SimplifiedBody),
 	replaceValues(ArgValues, VarNames, SimplifiedBody, Result),
-	maplist(cause, Result, Label, RuleNumber, CausesLists),
-	buildCauses(Result, Label, RuleNumber, CausesLists ,Causes).
+	(
+		opt(labels) ->
+		evaluateCauses(Result, Causes)						
+	;	
+		maplist(cause, Result, Label, RuleNumber, CausesLists),
+		buildCauses(Result, Label, RuleNumber, CausesLists ,Causes)
+	).
+
+% evaluateCauses(Body, Causes)
+% Find the causes that make true a given body with a given pair of Variable-Value. The lack of
+% causes for a term on the body don't make fail this function. That's why is used only when 'labels'
+% option is triggered.
+%	- Body: it is supposed to be simplifyBody and have no variables.
+%	- Causes (return)
+evaluateCauses([HTerm|Tail], [Cause|MoreCauses]) :-
+	cause(HTerm, Label, RuleNumber, TermCauses),
+	Cause =.. [cause|[HTerm, Label, RuleNumber, TermCauses]],
+	evaluateCauses(Tail, MoreCauses).
+
+evaluateCauses([HTerm|Tail], MoreCauses) :-
+	\+ cause(HTerm, _Label, _RuleNumber, _TermCauses),
+	evaluateCauses(Tail, MoreCauses).
+evaluateCauses([],[]).
 
 % replaceValues(ArgValues, VarNames, TermList, Result)
 %	Replace variables inside 'TermList' that match with anyone in 'VarNames' with the value in 'ArgValues' (based in order).
