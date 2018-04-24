@@ -52,46 +52,44 @@ writeCauses :-
 	% Facts first (rules without body)
 	repeat,
 	(
-		(
-			opt(labels) ->
-			dif(Label,'no_label')
-		;	true
-		),
 		fired(RuleNumber, ArgValues),
-		ruleInfo(Label,RuleNumber, Fname, FValue, _Vars, []),
-		FiredTerm =.. [Fname|ArgValues],
-		assert(cause(FiredTerm,Label,RuleNumber,[])),
+		ruleInfo(Label,RuleNumber, Fname, Args, VarNames, []),
+		FiredTerm =.. [Fname|Args],
+		replaceValues(ArgValues, VarNames, [FiredTerm], [EvaluatedFiredTerm]),		
+		replaceValues(ArgValues, VarNames, [Label], [EvaluatedLabel]),
+		assert(cause(EvaluatedFiredTerm,EvaluatedLabel,RuleNumber,[])),
 		fail
 	;	true
 	),!,
 	% Rules with body
 	repeat,
 	(
-		(
-			opt(labels) ->
-			dif(Label,'no_label')
-		;	true
-		),
 		fired(RuleNumber, ArgValues),
-		ruleInfo(Label, RuleNumber, Fname, FValue, VarNames, Body),
+		ruleInfo(Label, RuleNumber, Fname, Args, VarNames, Body),
 		(
 			Body = [] -> true
 		;	
 			getCauses(ArgValues, VarNames, Body, Causes),
-			FiredTerm =.. [Fname|ArgValues],
-			assert(cause(FiredTerm,Label,RuleNumber,Causes))
+			FiredTerm =.. [Fname|Args],
+			replaceValues(ArgValues, VarNames, [FiredTerm], [EvaluatedFiredTerm]),
+			replaceValues(ArgValues, VarNames, [Label], [EvaluatedLabel]),
+			assert(cause(EvaluatedFiredTerm,EvaluatedLabel,RuleNumber,Causes))
 		),
 		fail
 	;	true
 	),!,
 	% Writting causes
-	repeat,
 	(
-		cause(Term, Label, RuleNumber, Causes),
-		writelist(['cause(', Term, ',', Label, ',', RuleNumber, ',', Causes, ').']),nl,
-		fail
-	;	true
-	),!.
+		current_predicate(cause/4),
+		repeat,
+		(
+			cause(Term, Label, RuleNumber, Causes),
+			writelist(['cause(', Term, ',', Label, ',', RuleNumber, ',', Causes, ').']),nl,
+			fail
+		;	true
+		),!
+		; true
+	).
 
 
 % getCauses(ArgValues, VarNames, Body, Causes)
@@ -104,28 +102,47 @@ getCauses(ArgValues, VarNames, Body, Causes) :-
 	simplifyBody(Body, SimplifiedBody),
 	replaceValues(ArgValues, VarNames, SimplifiedBody, Result),
 	(
-		opt(labels) ->
-		evaluateCauses(Result, Causes)						
-	;	
-		maplist(cause, Result, Label, RuleNumber, CausesLists),
-		buildCauses(Result, Label, RuleNumber, CausesLists ,Causes)
+	opt(labels) ->
+		evaluateCausesLabels(Result, Causes)
+	;
+		evaluateCauses(Result, Causes)
 	).
 
 % evaluateCauses(Body, Causes)
 % Find the causes that make true a given body with a given pair of Variable-Value. The lack of
-% causes for a term on the body don't make fail this function. That's why is used only when 'labels'
-% option is triggered.
-%	- Body: it is supposed to be simplifyBody and have no variables.
+% causes for a term on the body don't make fail this function.
+%	- Body: it is supposed to be simplifyBody and have no variables without vari.
 %	- Causes (return)
+evaluateCauses(_, []) :-
+	\+ current_predicate(cause/4),!.
+
 evaluateCauses([HTerm|Tail], [Cause|MoreCauses]) :-
+	current_predicate(cause/4),
 	cause(HTerm, Label, RuleNumber, TermCauses),
 	Cause =.. [cause|[HTerm, Label, RuleNumber, TermCauses]],
 	evaluateCauses(Tail, MoreCauses).
 
 evaluateCauses([HTerm|Tail], MoreCauses) :-
+	current_predicate(cause/4),
 	\+ cause(HTerm, _Label, _RuleNumber, _TermCauses),
 	evaluateCauses(Tail, MoreCauses).
+
 evaluateCauses([],[]).
+
+
+evaluateCausesLabels([HTerm|Tail], MoreCauses) :-
+	current_predicate(cause/4),
+	cause(HTerm, no_label, _RuleNumber, TermCauses),!,
+	evaluateCausesLabels(Tail, TailCauses),
+	append(TermCauses, TailCauses, MoreCauses).
+
+evaluateCausesLabels([HTerm|Tail], [Cause|MoreCauses]) :-
+	current_predicate(cause/4),
+	cause(HTerm, Label, RuleNumber, TermCauses),
+	Cause =.. [cause|[HTerm, Label, RuleNumber, TermCauses]],
+	evaluateCausesLabels(Tail, MoreCauses).
+
+evaluateCausesLabels([],[]).
 
 % replaceValues(ArgValues, VarNames, TermList, Result)
 %	Replace variables inside 'TermList' that match with anyone in 'VarNames' with the value in 'ArgValues' (based in order).
@@ -148,13 +165,15 @@ replaceValues(_, _, [], []).
 %		- VarNames: List of variable names that you can find in the body.
 %		- VarList: List of variables that will be replaced.
 %		- Result (return): List of values.
+getVarValues(ArgValues, VarNames, [Var|T], [Var|Rest]) :-
+	\+ nth0(_Position, VarNames, Var),!,
+	getVarValues(ArgValues, VarNames, T, Rest).
+
 getVarValues(ArgValues, VarNames, [Var|T], [Value|Rest]) :-
 	nth0(Position, VarNames, Var),
 	nth0(Position, ArgValues, Value),
 	getVarValues(ArgValues, VarNames, T, Rest).
-getVarValues(ArgValues, VarNames, [Var|T], [Var|Rest]) :-
-	\+ nth0(_Position, VarNames, Var),
-	getVarValues(ArgValues, VarNames, T, Rest).
+
 getVarValues(_, _, [], []).
 
 

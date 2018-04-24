@@ -97,10 +97,10 @@ fname :
   | id '/' num  { $$=strCat($1,"/",$3,NULL); }
   
 rule :
-    head								{ruleline=yyline; printf("rule(no_label/%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
-  | id LABEL head          {ruleline=yyline; printf("rule(%s/%d/%d,%s,[]).\n",$1,rulenum++,ruleline,$3);}
-  | head {ruleline=yyline;} IF body		{printf("rule(no_label/%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
-  | id LABEL head {ruleline=yyline;} IF body {printf("rule(%s/%d/%d,%s,[%s]).\n",$1,rulenum++,ruleline,$3,$6);}
+    head								{ruleline=yyline; printf("rule(fterm(no_label,[])/%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
+  | fterm LABEL head          {ruleline=yyline; printf("rule(%s/%d/%d,%s,[]).\n",$1,rulenum++,ruleline,$3);}
+  | head {ruleline=yyline;} IF body		{printf("rule(fterm(no_label,[])/%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
+  | fterm LABEL head {ruleline=yyline;} IF body {printf("rule(%s/%d/%d,%s,[%s]).\n",$1,rulenum++,ruleline,$3,$6);}
   | IF {ruleline=yyline;} body			{printf("rule(no_label/%d/%d,[],[%s]).\n",rulenum++,ruleline,$3);}
   ;
 
