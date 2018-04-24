@@ -394,26 +394,27 @@ write_rule(R, Label/RuleNum/_LineNum, FreeVarNames) :-
 	;
 		% Write holds rule
 		length(FreeVarNames,Len),
-		write_holds(Fname,Value,FiredHead,Len),
+		length(TrueArgs, Ariety),
+		write_holds(Fname/Ariety,Value,FiredHead,Len),
 
 		% Saving rule info with the ruleNumber
-		assert(ruleInfo(Label,RuleNum,Fname,Value,All,B1))
+		Label =.. [_FT|[LabelFname, LabelVars]],
+		orderedAuxVarNames(LabelVars, PreparedLabelVars),
+		PreparedLabel =.. [LabelFname|PreparedLabelVars],
+		assert(ruleInfo(PreparedLabel,RuleNum,Fname,TrueArgs,All,B1))
 	).
 
 
-% write_holds(Fname, Value, FiredHead, FiredFreeVarNumber)
+% write_holds(Fname/Ariety, Value, FiredHead, FiredFreeVarNumber)
 %	Write the holds rule for a fired rule.
-%		- Fname
+%		- Fname/Ariety
 %		- Value: Value of the function.
 %		- FiredHead: Head of fired rule.
 %		- FiredFreeVarNumber 
-write_holds(Fname, Value, FiredHead, FiredFreeVarNumber) :-
-	% Get function ariety.
-	fname(Fname/VarNumber),
-	
+write_holds(Fname/Ariety, Value, FiredHead, FiredFreeVarNumber) :-
 	% Head varlist
 	set_count(varnum,0),
-	vartuple(VarNumber, Vars),
+	vartuple(Ariety, Vars),
 	% Head
 	concat_atom(['holds_',Fname], HoldsF),
 	append(Vars, [Value], VarsAndValue),
@@ -462,3 +463,9 @@ auxVarNames([v(X)|T], VarNames) :-
 	auxVarNames(T, MoreVarNames),
 	merge_set([Var], MoreVarNames, VarNames).
 auxVarNames([],[]).
+
+
+orderedAuxVarNames([v(X)|T], [Var|VarNames]) :-
+	concat_atom(['VAR',X], Var),
+	orderedAuxVarNames(T, VarNames).
+orderedAuxVarNames([],[]).
