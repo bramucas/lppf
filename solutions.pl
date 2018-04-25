@@ -27,12 +27,16 @@ writefact(Term):-
 	(   Term =.. [F|_], functor_prefix(F,aux,_),!   % ignore auxiliary atoms
 	  ; Term =.. [F|_], functor_prefix(F,nholds,_),!   % ignore auxiliary atoms
 	  ; Term = -_X,!   % ignore auxiliary atoms	  
-	  ; Term =.. [F|Values],
+	  ; Term =.. [F|Values],	% Fired rules
 	    functor_prefix(F,fired_,F2),!,
 		atom_number(F2,RuleNumber),
 		% Record values that fired the rule
 		assert(fired(RuleNumber, Values))
-	  ; Term =.. [F|Args],
+	  ; Term =.. [F|Values],	% Explain rules
+	  	functor_prefix(F,explain_,F2),!,
+	  	ExplainTerm =.. [F2|Values],
+	  	assert(justExplain(ExplainTerm))
+	  ; Term =.. [F|Args],		% Holds rules
 	    functor_prefix(F,holds_,F2),!,
 		append(Args0,[Value],Args),
 		Term2 =.. [F2|Args0],
@@ -80,15 +84,28 @@ writeCauses :-
 	),!,
 	% Writting causes
 	(
-		current_predicate(cause/4),
-		repeat,
+	current_predicate(cause/4) ->
 		(
-			cause(Term, Label, RuleNumber, Causes),
-			writelist(['cause(', Term, ',', Label, ',', RuleNumber, ',', Causes, ').']),nl,
-			fail
-		;	true
-		),!
-		; true
+		current_predicate(justExplain/1) ->
+			repeat,
+			(
+				justExplain(Term),
+				cause(Term, Label, RuleNumber, Causes),
+				writelist(['cause(', Term, ',', Label, ',', RuleNumber, ',', Causes, ').']),nl,
+				fail
+			;	true
+			),!	
+		;
+			repeat,
+			(
+				cause(Term, Label, RuleNumber, Causes),
+				writelist(['cause(', Term, ',', Label, ',', RuleNumber, ',', Causes, ').']),nl,
+				fail
+			;	true
+			),!
+		)
+	; 
+		true
 	).
 
 

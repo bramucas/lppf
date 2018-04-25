@@ -16,7 +16,7 @@
 
 %----- general dynamic predicates ----------------------------------------------
    
-:- dynamic rule/3, fname/1, show/1.
+:- dynamic rule/3, fname/1, show/1, explainRule/1.
 
 %----- other "modules" --------------------------------------------------------
 :- consult('util.pl').

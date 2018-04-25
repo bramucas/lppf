@@ -6,7 +6,9 @@ translate :-
   write('neg(true,false).\n'),
   write('neg(false,true).\n'),
   repeat,
-    (show(F), write_show_clause(F),fail; true),!, 
+    (show(F), write_show_clause(F),fail; true),!,
+  repeat,
+    (explainRule(F), write_explain_rule(F),fail; true),!, 
   repeat,
     ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
   repeat,
@@ -27,6 +29,22 @@ write_show_clause(F/N) :-
        M is N+1,concat_atom(['holds_',F],G)      
      ; % a predicate
        concat_atom(['atom_',F],G),M=N),writelist(['#show ',G,'/',M,'.\n']).
+
+write_explain_rule(Fname/Ariety) :-
+	fname(Fname/Ariety),!,
+
+	set_count(varnum,0),
+	vartuple(Ariety, Vars),
+
+	concat_atom(['explain_',Fname], HeadF),
+	Head =.. [HeadF|Vars],
+
+	concat_atom(['holds_',Fname], BodyF),
+	append(Vars, ['Value'], BodyVars),	
+	Body =.. [BodyF|BodyVars],
+
+	writelist([Head,' :- ',Body,'.\n']).
+
 
 %%% TERMS %%%%%%%%%%%%
 

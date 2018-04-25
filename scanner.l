@@ -29,6 +29,7 @@ or		{ return OR; }
 "^="		{ return DEFVALUE; }
 "\\E"		{ return EXISTS; }
 "#show"         { return SHOW; }
+"#explain"		{ return EXPLAIN; }
 "\\forsome"		{ return FORSOME; }
 
 ">="		{ return GEQ; }	
