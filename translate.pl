@@ -6,7 +6,9 @@ translate :-
   write('neg(true,false).\n'),
   write('neg(false,true).\n'),
   repeat,
-    (show(F), write_show_clause(F),fail; true),!, 
+    (show(F), write_show_clause(F),fail; true),!,
+  repeat,
+    (explainRule(Head, Body), write_explain_rule(Head, Body),fail; true),!, 
   repeat,
     ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
   repeat,
@@ -27,6 +29,38 @@ write_show_clause(F/N) :-
        M is N+1,concat_atom(['holds_',F],G)      
      ; % a predicate
        concat_atom(['atom_',F],G),M=N),writelist(['#show ',G,'/',M,'.\n']).
+
+write_explain_rule(OHead, OBody) :-
+	t_rule(OHead, OBody, Rs),
+	member(R,Rs),
+	remove_quantifiers([],R,Rs1),
+	lparse_divides(Rs1,Rs2),
+	member(RR,Rs2),
+	
+	map_subterms(replacevars,[v/1,vaux/1],RR,Rule),
+	Rule=(Head :- B),
+    replace_not_eq(B,Body),
+
+    Head =.. [FiredName|ArgsAndValue],
+    concat_atom(['fired_',FName], FiredName),
+
+    %quitar esto en el futuro
+    append(Args, [_LastItem], ArgsAndValue),
+
+    % Preparing head
+    concat_atom(['explain_',FName], HeadFname),
+    PreparedHead =.. [HeadFname|Args],
+
+    % Preparing body
+    concat_atom(['holds_',FName], BodyFname),
+    append(Args, ['Value'], BodyArgs),
+    BodyF =.. [BodyFname|BodyArgs],
+    append(Body, [BodyF], PreparedBody),
+
+    binop(',',PreparedBody,PreparedBody2),
+    writelist([PreparedHead, ' :- ', PreparedBody2, '.\n']).
+
+
 
 %%% TERMS %%%%%%%%%%%%
 
