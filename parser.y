@@ -98,7 +98,8 @@ fname :
   | id '/' num  { $$=strCat($1,"/",$3,NULL); }
   
 explain :
-  EXPLAIN {predicate="explainrule";} fnames
+    EXPLAIN head IF body {printf("explainrule(%s,[%s]).\n", $2, $4);}
+  | EXPLAIN head         {printf("explainrule(%s,[]).\n", $2);}
   ;
 
 rule :

@@ -8,7 +8,7 @@ translate :-
   repeat,
     (show(F), write_show_clause(F),fail; true),!,
   repeat,
-    (explainRule(F), write_explain_rule(F),fail; true),!, 
+    (explainRule(Head, Body), write_explain_rule(Head, Body),fail; true),!, 
   repeat,
     ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
   repeat,
@@ -30,20 +30,36 @@ write_show_clause(F/N) :-
      ; % a predicate
        concat_atom(['atom_',F],G),M=N),writelist(['#show ',G,'/',M,'.\n']).
 
-write_explain_rule(Fname/Ariety) :-
-	fname(Fname/Ariety),!,
+write_explain_rule(OHead, OBody) :-
+	t_rule(OHead, OBody, Rs),
+	member(R,Rs),
+	remove_quantifiers([],R,Rs1),
+	lparse_divides(Rs1,Rs2),
+	member(RR,Rs2),
+	
+	map_subterms(replacevars,[v/1,vaux/1],RR,Rule),
+	Rule=(Head :- B),
+    replace_not_eq(B,Body),
 
-	set_count(varnum,0),
-	vartuple(Ariety, Vars),
+    Head =.. [FiredName|ArgsAndValue],
+    concat_atom(['fired_',FName], FiredName),
 
-	concat_atom(['explain_',Fname], HeadF),
-	Head =.. [HeadF|Vars],
+    %quitar esto en el futuro
+    append(Args, [_LastItem], ArgsAndValue),
 
-	concat_atom(['holds_',Fname], BodyF),
-	append(Vars, ['Value'], BodyVars),	
-	Body =.. [BodyF|BodyVars],
+    % Preparing head
+    concat_atom(['explain_',FName], HeadFname),
+    PreparedHead =.. [HeadFname|Args],
 
-	writelist([Head,' :- ',Body,'.\n']).
+    % Preparing body
+    concat_atom(['holds_',FName], BodyFname),
+    append(Args, ['Value'], BodyArgs),
+    BodyF =.. [BodyFname|BodyArgs],
+    append(Body, [BodyF], PreparedBody),
+
+    binop(',',PreparedBody,PreparedBody2),
+    writelist([PreparedHead, ' :- ', PreparedBody2, '.\n']).
+
 
 
 %%% TERMS %%%%%%%%%%%%

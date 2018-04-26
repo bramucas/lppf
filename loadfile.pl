@@ -42,8 +42,8 @@ read_terms:-
 	  ; Term=show(F/N),!,
 	    (fname(F/N),!; assertz(show(F/N)) )	    
 
-	  ; Term=explainrule(F/N),!,
-	  	(fname(F/N),!; assertz(explainRule(F/N)) )
+	  ; Term=explainrule(Head,Body),!,
+	  	assertz(explainRule(Head,Body)) 
 
 	  ; debugln(['Not implemented:',Term])
 	  ),
