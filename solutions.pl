@@ -13,7 +13,7 @@ show_next_solution:-
 	 writelist(['Answer:',N]),nl,
 	 atom_to_term(T,Term,_),writefact(Term),
 	 (D=0' ,!,get_next_fact; true),
-	 show_next_solution,
+	 show_next_solution,nl,
 	 writeCauses
 	).
 show_next_solution.	
@@ -91,7 +91,7 @@ writeCauses :-
 			(
 				justExplain(Term),
 				cause(Term, Label, RuleNumber, Causes),
-				writelist(['cause(', Term, ',', Label, ',', RuleNumber, ',', Causes, ').']),nl,
+				writeCauseTree(Term, Label, Causes, 0),nl,
 				fail
 			;	true
 			),!	
@@ -99,7 +99,7 @@ writeCauses :-
 			repeat,
 			(
 				cause(Term, Label, RuleNumber, Causes),
-				writelist(['cause(', Term, ',', Label, ',', RuleNumber, ',', Causes, ').']),nl,
+				writeCauseTree(Term, Label, Causes, 0),nl,
 				fail
 			;	true
 			),!
@@ -108,6 +108,55 @@ writeCauses :-
 		true
 	).
 
+writeCauseTree(Term, Label, Causes, Level) :- 
+	% Root marker
+	(
+	Level = 0 ->
+		write('*')
+	;
+		true
+	),
+
+	% Node Term
+	write(Term),
+	% Label or not
+	(
+	Label = no_label ->
+		write('\n')
+	;
+		writelist([' $',Label,'\n'])
+	),
+	
+	% Causes or not
+	(
+	Causes = [] ->
+		!,true
+	;
+		% Causes
+		repeat,
+		(
+			member(C, Causes),
+			C =.. [cause|[CTerm, CLabel, _RuleNumber, CTermCauses]],
+			writeBranch(Level),
+			NextLevel is Level+1,
+			writeCauseTree(CTerm,CLabel,CTermCauses,NextLevel),
+			fail
+		;	
+			true
+		),!
+	).
+
+
+writeBranch(Level) :-
+	writeBirth(Level),
+	write('-- ').
+
+writeBirth(0) :-
+	write(' |'),!.
+writeBirth(Level) :-
+	write(' |   '),
+	NextLevel is Level-1,
+	writeBirth(NextLevel).
 
 % getCauses(ArgValues, VarNames, Body, Causes)
 %	Find the causes that make true a given body with a given pair of Variable-Value.
