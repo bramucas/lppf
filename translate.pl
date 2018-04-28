@@ -399,12 +399,12 @@ write_rule(R, Label/RuleNum/_LineNum, FreeVarNames) :-
 		sub_string(Fired,_,3,_,"aux") ->
 		write(H)
 	;
-		append(TrueArgs, [Value], Args),
+		append(TrueArgs, [_Value], Args),
 		% Get fname
 		concat_atom(['fired_',Fname],Fired), 
 
 		% Adding extra arguments
-		append(FreeVarNames, TrueArgs, All),
+		append(FreeVarNames, Args, All),
 
 		% Write fired rule head
 		concat_atom(['fired_',RuleNum],FiredHead),
@@ -429,7 +429,7 @@ write_rule(R, Label/RuleNum/_LineNum, FreeVarNames) :-
 		% Write holds rule
 		length(FreeVarNames,Len),
 		length(TrueArgs, Ariety),
-		write_holds(Fname/Ariety,Value,FiredHead,Len),
+		write_holds(Fname/Ariety,FiredHead,Len),
 
 		% Saving rule info with the ruleNumber
 		Label =.. [_FT|[LabelFname, LabelVars]],
@@ -445,20 +445,22 @@ write_rule(R, Label/RuleNum/_LineNum, FreeVarNames) :-
 %		- Value: Value of the function.
 %		- FiredHead: Head of fired rule.
 %		- FiredFreeVarNumber 
-write_holds(Fname/Ariety, Value, FiredHead, FiredFreeVarNumber) :-
+write_holds(Fname/Ariety,FiredHead, FiredFreeVarNumber) :-
 	% Head varlist
 	set_count(varnum,0),
 	vartuple(Ariety, Vars),
 	% Head
 	concat_atom(['holds_',Fname], HoldsF),
-	append(Vars, [Value], VarsAndValue),
+	append(Vars, ['Value'], VarsAndValue),
 	Head =.. [HoldsF | VarsAndValue],
 	
 	% Body varlist
 	vartuple(FiredFreeVarNumber, ExtraVars),
 	% Body
 	append(ExtraVars,Vars,BodyVars),
-	Body =.. [FiredHead | BodyVars],
+	append(BodyVars,['Value'],BodyVarsAndValue),
+
+	Body =.. [FiredHead | BodyVarsAndValue],
 
 	writelist([Head, ' :- ', Body, '.']).
 
