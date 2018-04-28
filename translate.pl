@@ -13,14 +13,13 @@ translate :-
     ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
   repeat,
     ( rule(C,H,B), writelist(['% ',H,' :- ',B]),nl,
-	  ruleFreeVars(H ,B, VarNames),
 	  set_count(varnum,0),
 	  t_rule(H,B,Rs),
 	  member(R,Rs),
 	  remove_quantifiers([],R,Rs1),
 	  lparse_divides(Rs1,Rs2),
 	  member(RR,Rs2),
-	  write_rule(RR,C,VarNames),nl,
+	  write_rule(RR,C),nl,
 	  fail
 	; true),!.
 
@@ -388,7 +387,7 @@ write_rule(R) :-
 %		- Rule: The translation of the original rule.
 %		- Code: format = RuleNumber/LineNumber.
 %		- FreeVarNames: List of free variables names for the rule.
-write_rule(R, Label/RuleNum/_LineNum, FreeVarNames) :-
+write_rule(R, Label/RuleNum/_LineNum) :-
 	map_subterms(replacevars,[v/1,vaux/1],R,R1),
 	R1=(H :- B),
     replace_not_eq(B,B1),
@@ -399,12 +398,13 @@ write_rule(R, Label/RuleNum/_LineNum, FreeVarNames) :-
 		sub_string(Fired,_,3,_,"aux") ->
 		write(H)
 	;
-		append(TrueArgs, [_Value], Args),
+		fired_args(B1, ExtraArgs),
 		% Get fname
 		concat_atom(['fired_',Fname],Fired), 
 
 		% Adding extra arguments
-		append(FreeVarNames, Args, All),
+		subtract(ExtraArgs, Args, ExtraArgs2),
+		append(ExtraArgs2, Args, All),
 
 		% Write fired rule head
 		concat_atom(['fired_',RuleNum],FiredHead),
@@ -427,7 +427,8 @@ write_rule(R, Label/RuleNum/_LineNum, FreeVarNames) :-
 		true
 	;
 		% Write holds rule
-		length(FreeVarNames,Len),
+		length(ExtraArgs2,Len),
+		append(TrueArgs, [_Value], Args),
 		length(TrueArgs, Ariety),
 		write_holds(Fname/Ariety,FiredHead,Len),
 
@@ -435,7 +436,9 @@ write_rule(R, Label/RuleNum/_LineNum, FreeVarNames) :-
 		Label =.. [_FT|[LabelFname, LabelVars]],
 		orderedAuxVarNames(LabelVars, PreparedLabelVars),
 		PreparedLabel =.. [LabelFname|PreparedLabelVars],
-		assert(ruleInfo(PreparedLabel,RuleNum,Fname,TrueArgs,All,B1))
+		% hay que pasar all sin value
+		append(OnlyFiredVars, [_Value2], All),
+		assert(ruleInfo(PreparedLabel,RuleNum,Fname,TrueArgs,OnlyFiredVars,B1))
 	).
 
 
@@ -505,3 +508,17 @@ orderedAuxVarNames([v(X)|T], [Var|VarNames]) :-
 	concat_atom(['VAR',X], Var),
 	orderedAuxVarNames(T, VarNames).
 orderedAuxVarNames([],[]).
+
+fired_args([HTerm|Tail], Arguments) :-
+	HTerm =.. [Fname|_Args],
+	\+ concat_atom(['holds_',_F],Fname),
+	fired_args(Tail, Arguments).
+
+fired_args([HTerm|Tail], Arguments) :-
+	HTerm =.. [Fname|ArgsAndValue],
+	concat_atom(['holds_',_F],Fname),
+	append(Args, [_Value], ArgsAndValue),
+	fired_args(Tail, MoreArgs),
+	merge_set(Args, MoreArgs, Arguments).
+
+fired_args([],[]).
