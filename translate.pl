@@ -382,88 +382,76 @@ write_rule(R) :-
 	(B1=[],!; write(' :- '),binop(',',B1,B2),write(B2)),
 	write('.').
 
-% write_rule(Rule, Code, FreeVarNames)
+% write_rule(Rule, Code)
 %	Writes the fired and holds rule for an input rule.
 %		- Rule: The translation of the original rule.
-%		- Code: format = RuleNumber/LineNumber.
-%		- FreeVarNames: List of free variables names for the rule.
+%		- Code: format = Label/RuleNumber/LineNumber.
 write_rule(R, Label/RuleNum/_LineNum) :-
-	map_subterms(replacevars,[v/1,vaux/1],R,R1),
-	R1=(H :- B),
-    replace_not_eq(B,B1),
+	map_subterms(replacevars,[v/1,vaux/1],R,Rule),
+	Rule = (Head :- B),
+    replace_not_eq(B, Body),
+	
 	% Head of fired rule
-	H =.. [Fired | Args],
+	Head =.. [RuleFname | Args],
 	(
-		% auxiliary pred
-		sub_string(Fired,_,3,_,"aux") ->
-		write(H)
+		% auxiliary predicates
+		sub_string(RuleFname,_,3,_,"aux") ->
+		write(Head)
 	;
-		fired_args(B1, ExtraArgs),
-		% Get fname
-		concat_atom(['fired_',Fname],Fired), 
-
 		% Adding extra arguments
-		subtract(ExtraArgs, Args, ExtraArgs2),
-		append(ExtraArgs2, Args, All),
+		body_variables(Body, BodyVariables),
+		subtract(BodyVariables, Args, ExtraArgs),
+		append(ExtraArgs, Args, All),
 
 		% Write fired rule head
-		concat_atom(['fired_',RuleNum],FiredHead),
-		NewHead =.. [FiredHead | All],
-		write(NewHead)	
+		concat_atom(['fired_',RuleNum],FiredFname),
+		FiredHead =.. [FiredFname | All],
+		write(FiredHead)	
 	),
 	
 	% Body of fired rule
 	(
-		B1=[],!
+		Body=[],!
 	;
 		write(' :- '),
-		binop(',',B1,B2),
-		write(B2)
+		binop(',', Body, PreparedBody),
+		write(PreparedBody)
 	),
 	write('.'),nl,
 
 	(
-		sub_string(Fired,_,3,_,"aux") ->
+		sub_string(RuleFname,_,3,_,"aux") ->
 		true
 	;
 		% Write holds rule
-		length(ExtraArgs2,Len),
 		append(TrueArgs, [_Value], Args),
-		length(TrueArgs, Ariety),
-		write_holds(Fname/Ariety,FiredHead,Len),
+		concat_atom(['fired_',Fname],RuleFname), 
+		write_holds(Fname, TrueArgs ,FiredHead),
 
 		% Saving rule info with the ruleNumber
-		Label =.. [_FT|[LabelFname, LabelVars]],
-		orderedAuxVarNames(LabelVars, PreparedLabelVars),
-		PreparedLabel =.. [LabelFname|PreparedLabelVars],
-		% hay que pasar all sin value
-		append(OnlyFiredVars, [_Value2], All),
-		assert(ruleInfo(PreparedLabel,RuleNum,Fname,TrueArgs,OnlyFiredVars,B1))
+		prepareLabel(Label, PreparedLabel),
+		append(FiredVarsNoValue, [_Value2], All),
+		OriginalTerm =.. [Fname|TrueArgs],
+
+		assert(ruleInfo(RuleNum, PreparedLabel, OriginalTerm, FiredVarsNoValue, Body))
 	).
 
-
-% write_holds(Fname/Ariety, Value, FiredHead, FiredFreeVarNumber)
+% write_holds(Fname, FTrueArgs, FiredHead)
 %	Write the holds rule for a fired rule.
-%		- Fname/Ariety
-%		- Value: Value of the function.
+%		- Fname: fname of the original function
+%		- FTrueArgs: arguments of the original function
 %		- FiredHead: Head of fired rule.
-%		- FiredFreeVarNumber 
-write_holds(Fname/Ariety,FiredHead, FiredFreeVarNumber) :-
-	% Head varlist
-	set_count(varnum,0),
-	vartuple(Ariety, Vars),
+write_holds(Fname, FTrueArgs, FiredHead) :-
 	% Head
-	concat_atom(['holds_',Fname], HoldsF),
-	append(Vars, ['Value'], VarsAndValue),
-	Head =.. [HoldsF | VarsAndValue],
+	concat_atom(['holds_',Fname], HoldsFname),
+	append(FTrueArgs, ['Value'], HoldsArgs),
+	Head =.. [HoldsFname | HoldsArgs],
 	
-	% Body varlist
-	vartuple(FiredFreeVarNumber, ExtraVars),
 	% Body
-	append(ExtraVars,Vars,BodyVars),
-	append(BodyVars,['Value'],BodyVarsAndValue),
-
-	Body =.. [FiredHead | BodyVarsAndValue],
+	FiredHead =.. [FiredFname|FiredArgs],
+	append(FiredArgsNoValue, [_Value], FiredArgs),
+	append(FiredArgsNoValue, ['Value'], NewFiredArgs),
+	Body =.. [FiredFname|NewFiredArgs],
 
 	writelist([Head, ' :- ', Body, '.']).
 
@@ -485,40 +473,29 @@ uniquevalue(F/N,R):-
 vartuple(0,[]):-!.
 vartuple(N,[V|Vs]):-newvar(V),M is N-1, vartuple(M,Vs).
 
-
-
-% ruleFreeVars(RuleHead, RuleBody, VarNames)
-%	Find free variable names of a rule given its head and body.
-ruleFreeVars(Head, Body, VarNames) :-
-	freevars(Head, HeadVars),
-	freevars(Body, BodyVars),
-	subtract(BodyVars, HeadVars, Vars),
-	auxVarNames(Vars, VarNames).
-
-% auxVarNames(VarList, VarNames)
-%	Return a list of 'VARX' form variable names, for a given variable list.
-auxVarNames([v(X)|T], VarNames) :-
-	concat_atom(['VAR',X], Var),
-	auxVarNames(T, MoreVarNames),
-	merge_set([Var], MoreVarNames, VarNames).
-auxVarNames([],[]).
-
+% Prepare a label to be processed on solutions module.
+prepareLabel(Label, PreparedLabel) :-
+	Label =.. [_F|[LabelFname, LabelVars]],
+	orderedAuxVarNames(LabelVars, PreparedLabelVars),
+	PreparedLabel =.. [LabelFname|PreparedLabelVars].
 
 orderedAuxVarNames([v(X)|T], [Var|VarNames]) :-
 	concat_atom(['VAR',X], Var),
 	orderedAuxVarNames(T, VarNames).
 orderedAuxVarNames([],[]).
 
-fired_args([HTerm|Tail], Arguments) :-
+% body_variables(Body, Arguments)
+%	Return all 'holds predicates arguments' (not the value) for a given translated body.
+body_variables([HTerm|Tail], Arguments) :-
 	HTerm =.. [Fname|_Args],
 	\+ concat_atom(['holds_',_F],Fname),
-	fired_args(Tail, Arguments).
+	body_variables(Tail, Arguments).
 
-fired_args([HTerm|Tail], Arguments) :-
+body_variables([HTerm|Tail], Arguments) :-
 	HTerm =.. [Fname|ArgsAndValue],
 	concat_atom(['holds_',_F],Fname),
 	append(Args, [_Value], ArgsAndValue),
-	fired_args(Tail, MoreArgs),
+	body_variables(Tail, MoreArgs),
 	merge_set(Args, MoreArgs, Arguments).
 
-fired_args([],[]).
+body_variables([],[]).

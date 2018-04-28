@@ -24,30 +24,44 @@ get_next_fact :-
 	(D=0' ,!,get_next_fact; true).
 
 writefact(Term):-
-	(   Term =.. [F|_], functor_prefix(F,aux,_),!   % ignore auxiliary atoms
-	  ; Term =.. [F|_], functor_prefix(F,nholds,_),!   % ignore auxiliary atoms
-	  ; Term = -_X,!   % ignore auxiliary atoms	  
-	  ; Term =.. [F|Values],	% Fired rules
+	(   
+		Term =.. [F|_], functor_prefix(F,aux,_),!   	% ignore auxiliary atoms
+	;	Term =.. [F|_], functor_prefix(F,nholds,_),!	% ignore auxiliary atoms
+	;	Term = -_X,!   									% ignore auxiliary atoms	  
+	; 
+	  	% Fired rules
+	  	Term =.. [F|Values],
 	    functor_prefix(F,fired_,F2),!,
 		atom_number(F2,RuleNumber),
-		% Record values that fired the rule
+
 		assert(fired(RuleNumber, Values))
-	  ; Term =.. [F|Values],	% Explain rules
+	; 
+	  	% Explain rules
+	  	Term =.. [F|Values],
 	  	functor_prefix(F,explain_,F2),!,
 	  	ExplainTerm =.. [F2|Values],
+
 	  	assert(justExplain(ExplainTerm))
-	  ; Term =.. [F|Args],		% Holds rules
+	; 
+	  	% Holds rules
+	  	Term =.. [F|Args],
 	    functor_prefix(F,holds_,F2),!,
 		append(Args0,[Value],Args),
 		Term2 =.. [F2|Args0],
 		% If it is a boolean value change the output format
 		(	
-			Value = true  -> writelist([Term2,'.']),nl
-		;	Value = false -> writelist(['~',Term2,'.']),nl
-		;					 writelist([Term2,'=',Value,'.']),nl	
+		  Value = true  -> 
+			writelist([Term2,'.']),nl
+		; Value = false -> 
+			writelist(['~',Term2,'.']),nl
+		;	
+			writelist([Term2,'=',Value,'.']),nl	
 		)
-	  ; opt(debug),!,write(Term),nl
-	  ; true
+	  ; 
+	  	opt(debug),!,
+	  	write(Term),nl
+	  ; 
+	  	true
 	).
 
 % writeCauses
@@ -57,36 +71,39 @@ writeCauses :-
 	repeat,
 	(
 		fired(RuleNumber, ArgValues),
-		ruleInfo(Label,RuleNumber, Fname, Args, VarNames, []),
-		FiredTerm =.. [Fname|Args],
-		replaceValues(ArgValues, VarNames, [FiredTerm], [EvaluatedFiredTerm]),		
-		replaceValues(ArgValues, VarNames, [Label], [EvaluatedLabel]),
-		assert(cause(EvaluatedFiredTerm,EvaluatedLabel,RuleNumber,[])),
+		ruleInfo(RuleNumber, OriginalLabel, OriginalTerm, VarNames, []),
+		
+		replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),		
+		replaceValues(ArgValues, VarNames, [OriginalLabel], [LabelFired]),
+
+		assert(cause(TermFired, LabelFired, RuleNumber, [])),
 		fail
-	;	true
+	;	
+		true
 	),!,
 	% Rules with body
 	repeat,
 	(
 		fired(RuleNumber, ArgValues),
-		ruleInfo(Label, RuleNumber, Fname, Args, VarNames, Body),
+		ruleInfo(RuleNumber, OriginalLabel, OriginalTerm, VarNames, Body),
 		(
 			Body = [] -> true
 		;	
 			getCauses(ArgValues, VarNames, Body, Causes),
-			FiredTerm =.. [Fname|Args],
-			replaceValues(ArgValues, VarNames, [FiredTerm], [EvaluatedFiredTerm]),
-			replaceValues(ArgValues, VarNames, [Label], [EvaluatedLabel]),
-			assert(cause(EvaluatedFiredTerm,EvaluatedLabel,RuleNumber,Causes))
+			
+			replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),
+			replaceValues(ArgValues, VarNames, [OriginalLabel], [LabelFired]),
+
+			assert(cause(TermFired, LabelFired, RuleNumber, Causes))
 		),
 		fail
 	;	true
 	),!,
 	% Writting causes
 	(
-	current_predicate(cause/4) ->
+	  current_predicate(cause/4) ->
 		(
-		current_predicate(justExplain/1) ->
+		  current_predicate(justExplain/1) ->
 			repeat,
 			(
 				justExplain(Term),
@@ -108,31 +125,37 @@ writeCauses :-
 		true
 	).
 
+% Writes an ASCII tree explanation for a cause
 writeCauseTree(Term, Label, Causes, Level) :- 
 	% Root marker
 	(
-	Level = 0 ->
+	  Level = 0 ->
 		write('*')
 	;
 		true
 	),
 
-	% Node Term
-	write(Term),
-	% Label or not
+	% Label
 	(
-	Label = no_label ->
-		write('\n')
+	  Label = no_label ->
+		true
 	;
-		writelist([' $',Label,'\n'])
+		writelist([' \033[1m',Label,'\033[0m '])
 	),
-	
-	% Causes or not
+
+	% Node Term
 	(
-	Causes = [] ->
+		opt(labels), Level>0 ->
+			true
+	;
+		write(Term)
+	),nl,
+	
+	% Causes
+	(
+	  Causes = [] ->
 		!,true
 	;
-		% Causes
 		repeat,
 		(
 			member(C, Causes),
@@ -177,7 +200,7 @@ getCauses(ArgValues, VarNames, Body, Causes) :-
 % evaluateCauses(Body, Causes)
 % Find the causes that make true a given body with a given pair of Variable-Value. The lack of
 % causes for a term on the body don't make fail this function.
-%	- Body: it is supposed to be simplifyBody and have no variables without vari.
+%	- Body: it is supposed to be a simplifiedBody and have no variables without value.
 %	- Causes (return)
 evaluateCauses(_, []) :-
 	\+ current_predicate(cause/4),!.
@@ -195,7 +218,7 @@ evaluateCauses([HTerm|Tail], MoreCauses) :-
 
 evaluateCauses([],[]).
 
-
+% Special version of evaluateCauses that skips a cause if it has no label.
 evaluateCausesLabels([HTerm|Tail], MoreCauses) :-
 	current_predicate(cause/4),
 	cause(HTerm, no_label, _RuleNumber, TermCauses),!,
