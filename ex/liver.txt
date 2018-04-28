@@ -75,6 +75,3 @@ psoft_sum(0,P):=0 :- transplant(P).
 psoft_sum(R,P):= psoft(psoft_category(R),P) + psoft_sum(R-1,P).
 
 psoft_cal(P) := psoft_sum(14,P).
-
-#show psoft_cal/1.
-#show psoft/2.
