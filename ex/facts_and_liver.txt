@@ -357,35 +357,35 @@ psoft_risk(ascites_pretransplant):=3.
 
 %%%%%%%%%%%%%%%%%%%%%% PSOFT rules with constraints %%%%%%%%%%%%%%%%%%%%%%
 
-age :: psoft(age_60,P):= psoft_risk(age_60)    :- age(P)>60.
+si_age60 :: psoft(age_60,P):= psoft_risk(age_60)    :- age(P)>60.
 
-bmi :: psoft(bmi6_35,P):= psoft_risk(bmi6_35)  :- bmi(P)>35.
+si_bmi6_35 :: psoft(bmi6_35,P):= psoft_risk(bmi6_35)  :- bmi(P)>35.
 
-one_prev_trans :: psoft(one_previous_transplant,P):= psoft_risk(one_previous_transplant)        :- p_trans(P)=1.
+si_one_prev_trans :: psoft(one_previous_transplant,P):= psoft_risk(one_previous_transplant)        :- p_trans(P)=1.
 
-two_prev_trans :: psoft(two_previous_transpant,P):= psoft_risk(two_previous_transpant)        :- p_trans(P)>1.
+si_two_prev_trans :: psoft(two_previous_transpant,P):= psoft_risk(two_previous_transpant)        :- p_trans(P)>1.
 
-prev_abdom_surg :: psoft(previous_abdominal_surgey,P):= psoft_risk(previous_abdominal_surgey)  :- ab_surgery(P).
+si_prev_abdom_surg :: psoft(previous_abdominal_surgey,P):= psoft_risk(previous_abdominal_surgey)  :- ab_surgery(P).
 
-albumin :: psoft(albumin,P):= psoft_risk(albumin) :- albumin_fl(P)<200.
+si_albumin :: psoft(albumin,P):= psoft_risk(albumin) :- albumin_fl(P)<200.
 
-dialysis :: psoft(dialysis_prior_transplantation,P):= psoft_risk(dialysis_prior_transplantation)        :- dialysis(P).
+si_dialysis :: psoft(dialysis_prior_transplantation,P):= psoft_risk(dialysis_prior_transplantation)        :- dialysis(P).
 
-icu :: psoft(intensive_care_unit_pretransplant,P):= psoft_risk(intensive_care_unit_pretransplant)  :- icu(P).
+si_icu :: psoft(intensive_care_unit_pretransplant,P):= psoft_risk(intensive_care_unit_pretransplant)  :- icu(P).
 
-hospital :: psoft(admitted_to_hospital_pretransplant,P):= psoft_risk(admitted_to_hospital_pretransplant) :- hospital(P).
+si_hospital :: psoft(admitted_to_hospital_pretransplant,P):= psoft_risk(admitted_to_hospital_pretransplant) :- hospital(P).
 
-meld_30 :: psoft(meld_30,P):= psoft_risk(meld_30) :- meld(P)>30.
+si_meld_30 :: psoft(meld_30,P):= psoft_risk(meld_30) :- meld(P)>30.
 
-life_support_pretrans :: psoft(life_support_pretransplant,P):= psoft_risk(life_support_pretransplant) :- l_sup(P).
+si_life_support_pretrans :: psoft(life_support_pretransplant,P):= psoft_risk(life_support_pretransplant) :- l_sup(P).
 
-encheph :: psoft(encephalopathy,P):= psoft_risk(encephalopathy) :- enceph(P).
+si_encheph :: psoft(encephalopathy,P):= psoft_risk(encephalopathy) :- enceph(P).
 
-portaL_thromb :: psoft(portal_vein_thrombosis,P):= psoft_risk(portal_vein_thrombosis)  :- p_thromb(P).
+si_portal_thromb :: psoft(portal_vein_thrombosis,P):= psoft_risk(portal_vein_thrombosis)  :- p_thromb(P).
 
-ascites(ascites_pretransplant) :: psoft(ascites_pretransplant,P):= psoft_risk(ascites_pretransplant)    :- ascites(P).
+si_ascites_pretransplant :: psoft(ascites_pretransplant,P):= psoft_risk(ascites_pretransplant)    :- ascites(P).
 
-etiqueta(C) :: psoft(C,P) ^= 0 :- transplant(P), psoft_category(R)=C.
+psoft(C,P) ^= 0 :- transplant(P), psoft_category(R)=C.
 
 %%%%%%%%%%%%%%%%%%%%%% Calculating psoft %%%%%%%%%%%%%%%%%%%%%%
 
@@ -394,10 +394,10 @@ etiqueta(C) :: psoft(C,P) ^= 0 :- transplant(P), psoft_category(R)=C.
 
 
 psoft_sum(0,P):=0 :- transplant(P).
-%psoft_sum(R,P):= Suma :- (psoft(psoft_category(R),P) + psoft_sum(R-1,P)) = Suma.
+psoft_sum(R,P):= psoft(psoft_category(R),P) + psoft_sum(R-1,P).
 
-psoft_sum(R,P):= Suma :- psoft_category(R)=Cat, psoft(Cat,P)=X1, NextR=R-1, psoft_sum(NextR,P)=X2, Suma=X1+X2.
+%psoft_sum(R,P):= Suma :- psoft_category(R)=Cat, psoft(Cat,P)=X1, NextR=R-1, psoft_sum(NextR,P)=X2, Suma=X1+X2.
 
-calculo :: psoft_cal(P) := psoft_sum(14,P).
+psoft_cal(P) := psoft_sum(14,P).
 
-#explain psoft_cal(731).
+#explain psoft_cal(P) :- psoft_cal(P) = V, V > 15, V < 25, alive(P).

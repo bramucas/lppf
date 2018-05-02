@@ -142,13 +142,14 @@ writeCauseTree(Term, Label, Value, Causes, Level) :-
 	  Label = no_label ->
 		true
 	;
-		writelist([' \033[1m',Label,'\033[0m '])
+		writelist([' \033[1;33m',Label,'\033[0m '])
+
 	),
 
 	% Node Term and value
 	(
 		opt(labels), Level>0 ->
-			true
+			writelist([' = ', Value])
 	;
 		% If it is a boolean value change the output format
 		(	
@@ -157,7 +158,7 @@ writeCauseTree(Term, Label, Value, Causes, Level) :-
 		; Value = false -> 
 			writelist(['~',Term])
 		;	
-			writelist([Term,'=',Value])
+			writelist([Term,' = ',Value])
 		)
 	),nl,
 	
