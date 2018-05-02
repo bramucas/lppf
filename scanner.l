@@ -24,12 +24,14 @@ or		{ return OR; }
 "#function"     {return FUNCTION;}
 "#choose"       {return CHOOSE;}
 
+"::"		{ return LABEL;}
 ":-"		{ return IF; }
 ".."		{ return DOTS; }
 ":="		{ return ASSIGN; }
 "^="		{ return DEFVALUE; }
 "#exists"	{ return EXISTS; }
 "#show"     { return SHOW; }
+"#explain"		{ return EXPLAIN; }
 
 ">="		{ return GEQ; }	
 "<="		{ return LEQ; }	

@@ -34,7 +34,9 @@ char  	*strval; /* For returning a string */
 %token NOT
 %token OR
 %token SHOW
+%token EXPLAIN
 
+%token LABEL
 %token DOTS
 %token ASSIGN
 %token DEFVALUE
@@ -86,11 +88,12 @@ sentences : sentence '.' | sentences sentence '.';
 sentence : 
             FUNCTION {predicate="fname";} fnames;
           | SHOW     {predicate="show";} fnames;
+          | explain
 	  | rule
 	  ;
 
 fnames :
-      fname		{printf("%s(%s).\n",predicate,$1); }
+      fname		{printf("%s(%s).\n",predicate,$1);}
     | fnames ',' fname	{printf("%s(%s).\n",predicate,$3); }
   ;  
 
@@ -98,10 +101,17 @@ fname :
 	id			{ $$=strCat($1,"/0",NULL); }
   | id '/' num  { $$=strCat($1,"/",$3,NULL); }
   
+explain :
+    EXPLAIN head IF body {printf("explainrule(%s,[%s]).\n", $2, $4);}
+  | EXPLAIN head         {printf("explainrule(%s,[]).\n", $2);}
+  ;
+
 rule :
-    head								{ruleline=yyline; printf("rule(%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
-  | head {ruleline=yyline;} IF body		{printf("rule(%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
-  | IF {ruleline=yyline;} body			{printf("rule(%d/%d,[],[%s]).\n",rulenum++,ruleline,$3);}
+    head								{ruleline=yyline; printf("rule(fterm(no_label,[])/%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
+  | fterm LABEL head          {ruleline=yyline; printf("rule(%s/%d/%d,%s,[]).\n",$1,rulenum++,ruleline,$3);}
+  | head {ruleline=yyline;} IF body		{printf("rule(fterm(no_label,[])/%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
+  | fterm LABEL head {ruleline=yyline;} IF body {printf("rule(%s/%d/%d,%s,[%s]).\n",$1,rulenum++,ruleline,$3,$6);}
+  | IF {ruleline=yyline;} body			{printf("rule(no_label/%d/%d,[],[%s]).\n",rulenum++,ruleline,$3);}
   ;
 
 atom :

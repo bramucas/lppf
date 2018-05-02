@@ -1,4 +1,4 @@
-:- dynamic varnum/1, prednum/1.
+:- dynamic varnum/1, prednum/1, body/2.
 varnum(0).
 prednum(0).
 
@@ -6,17 +6,19 @@ translate :-
   write('neg(true,false).\n'),
   write('neg(false,true).\n'),
   repeat,
-    (show(F), write_show_clause(F),fail; true),!, 
+    (show(F), write_show_clause(F),fail; true),!,
+  repeat,
+    (explainRule(Head, Body), write_explain_rule(Head, Body),fail; true),!, 
   repeat,
     ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
   repeat,
-    ( rule(_C,H,B), writelist(['% ',H,' :- ',B]),nl,
+    ( rule(C,H,B), writelist(['% ',H,' :- ',B]),nl,
 	  set_count(varnum,0),
 	  t_rule(H,B,Rs),
 	  member(R,Rs),
 	  remove_quantifiers([],R,Rs1),
 	  member(RR,Rs1),
-	  write_rule(RR),nl,
+	  write_rule(RR,C),nl,
 	  fail
 	; true),!.
 
@@ -25,6 +27,37 @@ write_show_clause(F/N) :-
        M is N+1,concat_atom(['holds_',F],G)      
      ; % a predicate
        concat_atom(['atom_',F],G),M=N),writelist(['#show ',G,'/',M,'.\n']).
+
+write_explain_rule(OHead, OBody) :-
+	t_rule(OHead, OBody, Rs),
+	member(R,Rs),
+	remove_quantifiers([],R,Rs1),
+	member(RR,Rs1),
+	
+	map_subterms(replacevars,[v/1,vaux/1],RR,Rule),
+	Rule=(Head :- B),
+    replace_not_eq(B,Body),
+
+    Head =.. [FiredName|ArgsAndValue],
+    concat_atom(['fired_',FName], FiredName),
+
+    %quitar esto en el futuro
+    append(Args, [_LastItem], ArgsAndValue),
+
+    % Preparing head
+    concat_atom(['explain_',FName], HeadFname),
+    PreparedHead =.. [HeadFname|Args],
+
+    % Preparing body
+    concat_atom(['holds_',FName], BodyFname),
+    append(Args, ['Value'], BodyArgs),
+    BodyF =.. [BodyFname|BodyArgs],
+    append(Body, [BodyF], PreparedBody),
+
+    binop(',',PreparedBody,PreparedBody2),
+    writelist([PreparedHead, ' :- ', PreparedBody2, '.\n']).
+
+
 
 %%% TERMS %%%%%%%%%%%%
 
@@ -176,7 +209,7 @@ t_rule(def_assign(Fterm,T),B,L) :-
 
 %  Assignment
 t_rule(assign(fterm(F,Args),T),B,[(A1 :- B1)]) :-
-    concat_atom(['holds_',F],HOLDSF),
+    concat_atom(['fired_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	t_term(T,T1,Hs),
 	append(Args1,[T1],Args2),
@@ -200,7 +233,7 @@ t_rule(choice(fterm(F,Args),set(v(X),Cond)),B,[R1,R2,R3]) :-
 	map_subterms(replace_var,[v/1],Cond,Cond2),
 
     % Translate the head functional term
-    concat_atom(['holds_',F],HOLDSF),
+    concat_atom(['fired_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	append(Args1,[v(AUXVAR)],Args2),
 	A =.. [HOLDSF | Args2],
@@ -223,7 +256,7 @@ t_rule(choice(fterm(F,Args),set(List)),B,[R1,R2,R3|Rs]) :-
 	!,newvar(AUXVAR),
 	
     % Translate the head functional term
-    concat_atom(['holds_',F],HOLDSF),
+    concat_atom(['fired_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	append(Args1,[v(AUXVAR)],Args2),
 	A =.. [HOLDSF | Args2],
@@ -343,6 +376,79 @@ write_rule(R) :-
 	(B1=[],!; write(' :- '),binop(',',B1,B2),write(B2)),
 	write('.').
 
+% write_rule(Rule, Code)
+%	Writes the fired and holds rule for an input rule.
+%		- Rule: The translation of the original rule.
+%		- Code: format = Label/RuleNumber/LineNumber.
+write_rule(R, Label/RuleNum/_LineNum) :-
+	map_subterms(replacevars,[v/1,vaux/1],R,Rule),
+	Rule = (Head :- B),
+    replace_not_eq(B, Body),
+	
+	% Head of fired rule
+	Head =.. [RuleFname | Args],
+	(
+		% auxiliary predicates
+		sub_string(RuleFname,_,3,_,"aux") ->
+		write(Head)
+	;
+		% Adding extra arguments
+		body_variables(Body, BodyVariables),
+		subtract(BodyVariables, Args, ExtraArgs),
+		append(ExtraArgs, Args, All),
+
+		% Write fired rule head
+		concat_atom(['fired_',RuleNum],FiredFname),
+		FiredHead =.. [FiredFname | All],
+		write(FiredHead)	
+	),
+	
+	% Body of fired rule
+	(
+		Body=[],!
+	;
+		write(' :- '),
+		binop(',', Body, PreparedBody),
+		write(PreparedBody)
+	),
+	write('.'),nl,
+
+	(
+		sub_string(RuleFname,_,3,_,"aux") ->
+		true
+	;
+		% Write holds rule
+		append(TrueArgs, [_Value], Args),
+		concat_atom(['fired_',Fname],RuleFname), 
+		write_holds(Fname, TrueArgs ,FiredHead),
+
+		% Saving rule info with the ruleNumber
+		prepareLabel(Label, PreparedLabel),
+		append(FiredVarsNoValue, [_Value2], All),
+		OriginalTerm =.. [Fname|TrueArgs],
+
+		assert(ruleInfo(RuleNum, PreparedLabel, OriginalTerm, FiredVarsNoValue, Body))
+	).
+
+% write_holds(Fname, FTrueArgs, FiredHead)
+%	Write the holds rule for a fired rule.
+%		- Fname: fname of the original function
+%		- FTrueArgs: arguments of the original function
+%		- FiredHead: Head of fired rule.
+write_holds(Fname, FTrueArgs, FiredHead) :-
+	% Head
+	concat_atom(['holds_',Fname], HoldsFname),
+	append(FTrueArgs, ['Value'], HoldsArgs),
+	Head =.. [HoldsFname | HoldsArgs],
+	
+	% Body
+	FiredHead =.. [FiredFname|FiredArgs],
+	append(FiredArgsNoValue, [_Value], FiredArgs),
+	append(FiredArgsNoValue, ['Value'], NewFiredArgs),
+	Body =.. [FiredFname|NewFiredArgs],
+
+	writelist([Head, ' :- ', Body, '.']).
+
 replace_not_eq([],[]):-!.
 replace_not_eq([not (A=B)|Ls],[A '!=' B|Ms]):-!,replace_not_eq(Ls,Ms).
 replace_not_eq([A|Ls],[A|Ms]):-!,replace_not_eq(Ls,Ms).
@@ -361,3 +467,29 @@ uniquevalue(F/N,R):-
 vartuple(0,[]):-!.
 vartuple(N,[V|Vs]):-newvar(V),M is N-1, vartuple(M,Vs).
 
+% Prepare a label to be processed on solutions module.
+prepareLabel(Label, PreparedLabel) :-
+	Label =.. [_F|[LabelFname, LabelVars]],
+	orderedAuxVarNames(LabelVars, PreparedLabelVars),
+	PreparedLabel =.. [LabelFname|PreparedLabelVars].
+
+orderedAuxVarNames([v(X)|T], [Var|VarNames]) :-
+	concat_atom(['VAR',X], Var),
+	orderedAuxVarNames(T, VarNames).
+orderedAuxVarNames([],[]).
+
+% body_variables(Body, Arguments)
+%	Return all 'holds predicates arguments' (not the value) for a given translated body.
+body_variables([HTerm|Tail], Arguments) :-
+	HTerm =.. [Fname|_Args],
+	\+ concat_atom(['holds_',_F],Fname),
+	body_variables(Tail, Arguments).
+
+body_variables([HTerm|Tail], Arguments) :-
+	HTerm =.. [Fname|ArgsAndValue],
+	concat_atom(['holds_',_F],Fname),
+	append(Args, [_Value], ArgsAndValue),
+	body_variables(Tail, MoreArgs),
+	merge_set(Args, MoreArgs, Arguments).
+
+body_variables([],[]).

@@ -1,0 +1,12 @@
+num(1).
+num(2).
+p(1,1) :- X0>=0,sum(2,X0).
+p(2,1).
+
+% Computing the aggregate #sum{X:p(N,X)} inductively
+sum(1,X0) :- p(1,X0).
+sum(N+1,X2+X3) :- N<2,num(N),sum(N,X2),p(N+1,X3).
+
+% p has default value 0
+p(N,0) :- num(N),not aux0(N).
+aux0(N) :- num(N),X0!=0,p(N,X0).

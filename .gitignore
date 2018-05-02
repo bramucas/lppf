@@ -6,6 +6,12 @@
 !/scanner.l
 !/Makefile
 
+# Examples directory
+!/ex
+
+# Makefile
+!/Makefile
+
 # Docs
 !/*.md
 
