@@ -54,8 +54,9 @@ get_implicit_fnames:-
 	repeat,
 	  ( rule(_,H,B),
 	    get_implicit_fname(H),
-		get_non0ary_fname(H),
-		get_non0ary_fname(B),
+	    get_non0ary_fname(H),
+	    get_non0ary_fname(B),
+	    get_boolean_equalities(B),
 	    fail
 	  ; true),!.
 
@@ -73,6 +74,18 @@ get_non0ary_fname(T):-
 	  fail
 	; true
 	),!.
+
+get_boolean_equalities(T):-
+	subterms(['=='/2],T,Xs),
+	repeat, (
+	  member(fterm(F,Args) == _,Xs),
+	  length(Args,N),
+	  assertfname(F/N),
+	  fail
+	; true
+	),!.
+
+
 	
 assertfname(N):-fname(N),!.
 assertfname(N):-assertz(fname(N)).

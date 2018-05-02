@@ -25,9 +25,10 @@ char  	*strval; /* For returning a string */
 
 
 %token ABS
+%token SUM
 %token EXISTS
-%token FORSOME
 %token FUNCTION
+%token CHOOSE
 %token IF
 %token IN
 %token NOT
@@ -60,10 +61,12 @@ char  	*strval; /* For returning a string */
 %type <strval> fterm
 %type <strval> aterm
 %type <strval> termlist
+%type <strval> item
+%type <strval> itemlist
 %type <strval> id
-%type <strval> vidlist
 %type <strval> vid
 %type <strval> num
+%type <strval> aggregate
 
 %left IF
 %left OR
@@ -72,6 +75,7 @@ char  	*strval; /* For returning a string */
 %left '-' '+'
 %left '*' '/' '\\'
 %left UMINUS     /* unary minus */
+%left '~'
 
 /* Grammar follows */
 
@@ -111,23 +115,33 @@ rule :
   ;
 
 atom :
-    fterm		        {$$=strCat($1,"= fterm(true,[])",NULL);}
-  | '~' fterm       {$$=strCat($2,"= fterm(false,[])",NULL);}
+    fterm		        {$$=strCat($1,"==fterm(true,[])",NULL);}
+  | '~' fterm                   {$$=strCat($2,"==fterm(false,[])",NULL);}
   | term '=' term		{$$=strCat($1,"=",$3,NULL);}
   | term NEQ term		{$$=strCat($1,"=\\=",$3,NULL);}
   | term '>' term		{$$=strCat($1,">",$3,NULL);}
   | term '<' term		{$$=strCat($1,"<",$3,NULL);}
   | term GEQ term		{$$=strCat($1,">=",$3,NULL);}
   | term LEQ term		{$$=strCat($3,">=",$1,NULL);}
-  | EXISTS term			{$$=strCat($2,"=",$2,NULL);}
-  | FORSOME vidlist '(' body ')'		{$$=strCat("forsome([",$2,"],[",$4,"])",NULL); }
+  | EXISTS '{' item '}' {$$=strCat("agg(exists,[",$3,"])",NULL);}
   ;
     
 literal :
-    atom				{$$=$1;}
-  | NOT atom			        {$$=strCat("not (",$2,")",NULL);}
-  | NOT NOT atom	  	        {$$=strCat("not not  (",$3,")",NULL);}
+    atom				  {$$=$1;}
+  | NOT atom			{$$=strCat("not (",$2,")",NULL);}
+  | NOT NOT atom	{$$=strCat("not not  (",$3,")",NULL);}
   ;
+
+itemlist:
+    item              {$$=$1;}
+  | itemlist ';' item {$$=strCat($1,",",$3,NULL);}
+  ;
+
+item:
+    termlist ':' body {$$=strCat("[",$1,"]:[",$3,"]",NULL);}
+  | termlist          {$$=strCat("[",$1,"]:[]",NULL);}
+  ; 
+
 
 body :
     literal				{$$=$1;}
@@ -139,13 +153,13 @@ head :
   | '~' fterm         {{$$=strCat("assign(",$2,", fterm(false,[]))",NULL);}}
   | fterm ASSIGN term	{$$=strCat("assign(",$1,",",$3,")",NULL);}
   | fterm DEFVALUE term {$$=strCat("def_assign(",$1,",",$3,")",NULL);}
-  | fterm IN set		{$$=strCat("choice(",$1,",",$3,")",NULL);}
+  | fterm ASSIGN CHOOSE set		{$$=strCat("choice(",$1,",",$4,")",NULL);}
   ;
 
 set :
 	'{' '}'					{$$=strCat("set([])",NULL);}
   | '{' termlist '}'		{$$=strCat("set([",$2,"])",NULL);}
-  | '{' vid '|' body '}'	{$$=strCat("set(",$2,",[",$4,"])",NULL);}
+  | '{' vid ':' body '}'	{$$=strCat("set(",$2,",[",$4,"])",NULL);}
 /*  
   | '{' fterm  '|' body '}'	{$$=strCat("set(",$2,",[",$4,"])",NULL);}
   | '{' aterm  '|' body '}'	{$$=strCat("set(",$2,",[",$4,"])",NULL);}
@@ -155,7 +169,8 @@ set :
   ;
 
 term :
-	vid					{$$=$1;}
+    aggregate '{' itemlist '}' {$$=strCat("agg(",$1,",[",$3,"])", NULL);}
+  | vid					{$$=$1;}
   | num					{$$=$1;}
   | fterm				{$$=$1;}
   | aterm				{$$=$1;}
@@ -188,14 +203,13 @@ id :
     ID 		{ $$=yylval.strval; }
   ;
 
-vidlist :
-	  vid			    {$$=$1;}
-	| vidlist ',' vid	{$$=strCat($1,",",$3,NULL);}
-	;
-
 vid : VID 		{ $$=strCat("v('",yylval.strval,"')",NULL); } ;
 
 num : NUMBER 		{ $$=yylval.strval; } ;
+
+aggregate :
+    SUM   {$$="sum";}
+  ;
 
 /* End of grammar */
 %%
