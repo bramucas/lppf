@@ -17,8 +17,7 @@ translate :-
 	  t_rule(H,B,Rs),
 	  member(R,Rs),
 	  remove_quantifiers([],R,Rs1),
-	  lparse_divides(Rs1,Rs2),
-	  member(RR,Rs2),
+	  member(RR,Rs1),
 	  write_rule(RR,C),nl,
 	  fail
 	; true),!.
@@ -33,8 +32,7 @@ write_explain_rule(OHead, OBody) :-
 	t_rule(OHead, OBody, Rs),
 	member(R,Rs),
 	remove_quantifiers([],R,Rs1),
-	lparse_divides(Rs1,Rs2),
-	member(RR,Rs2),
+	member(RR,Rs1),
 	
 	map_subterms(replacevars,[v/1,vaux/1],RR,Rule),
 	Rule=(Head :- B),
@@ -88,13 +86,13 @@ t_term(A-B,vaux(AUXVAR),Gs) :-
 	append_all([[ATOM],As,Bs],Gs).
 
 t_term(A/B,vaux(AUXVAR),Gs) :-
-	!,newvar(AUXVAR),	t_term(A,A1,As), t_term(B,B1,Bs),
-	ATOM=divide(A1,B1,vaux(AUXVAR)),
+        !,newvar(AUXVAR),	t_term(A,A1,As), t_term(B,B1,Bs),
+        ATOM=(vaux(AUXVAR)=A1/B1),
 	append_all([[ATOM],As,Bs],Gs).
 
 t_term(A '\\ ' B,vaux(AUXVAR),Gs) :-
 	!,newvar(AUXVAR),	t_term(A,A1,As), t_term(B,B1,Bs),
-	ATOM=modulo(A1,B1,vaux(AUXVAR)),
+        ATOM=(vaux(AUXVAR)=A1 '\\ ' B1),
 	append_all([[ATOM],As,Bs],Gs).
 
 % functional terms
@@ -131,31 +129,51 @@ t_terms([T|Ts],[S|Ss],Hs) :- t_term(T,S,Fs), t_terms(Ts,Ss,Gs), append(Fs,Gs,Hs)
 %      possibly existentially quantified
 
 t_atom(Term, ATOM ):- 
-	Term=.. [RELOP,T1,T2],member(RELOP,[(=),(=\=),(>),(<),(>=)]),!,
-    t_term(T1,S1,Fs1),
+	Term=.. [RELOP,T1,T2],member(RELOP,[(=),(=\=),(>),(<),(>=),(==)]),!,
+        t_term(T1,S1,Fs1),
 	t_term(T2,S2,Fs2),
 	append(Fs1,Fs2,Fs),
 	(RELOP=(=\=),!, A=(S1 '!=' S2)
+	; RELOP=(==),!, A=(S1 = S2)
 	; A =.. [RELOP,S1,S2]
 	),
-	subterms([vaux/1],A,AUXVARS),
+	subterms([vaux/1],[A|Fs],AUXVARS),
 	( AUXVARS=[],Fs=[],!,ATOM=A; ATOM=exists(AUXVARS,[A|Fs])).
+
+t_atom(defined(T),ATOM):-!,
+        t_term(T,_,Fs),
+	subterms([vaux/1],Fs,AUXVARS),
+	( AUXVARS=[],Fs=[],!,ATOM='#true'; ATOM=exists(AUXVARS,Fs)).
+			 
+t_atom(agg(exists,[Ts:B]), ATOM) :- !,
+        filter(isvar,Ts,Vs,NonVars),
+%%%% Option 1				    
+%	freevars(NonVars,Vs1),
+%	append(Vs,Vs1,Vs2),
+%%%% Option 2
+        Vs2=Vs,
 	
-t_atom(A,ATOM):- !, 
-	A =.. [P|Args], t_terms(Args,Args1,Fs), 
-	concat_atom(['atom_',P],P1),
-	A1 =.. [P1|Args1],
-	subterms([vaux/1],A1,AUXVARS),
-	( AUXVARS=[],!,ATOM=A1; ATOM=exists(AUXVARS,[A1|Fs])).	
+	findall(defined(NonVar),member(NonVar,NonVars),Dfs),
+	append(B,Dfs,B1),
+	t_body(B1,B2),
+        ATOM=exists(Vs2,B2).
+
+%t_atom(A,ATOM):- !, 
+%	A =.. [P|Args], t_terms(Args,Args1,Fs), 
+%	concat_atom(['atom_',P],P1),
+%	A1 =.. [P1|Args1],
+%	subterms([vaux/1],A1,AUXVARS),
+%	( AUXVARS=[],!,ATOM=A1; ATOM=exists(AUXVARS,[A1|Fs])).	
 
 % Lists of atoms
 t_atoms([],[]):-!.
 t_atoms([A|As],Hs):-t_atom(A,Fs), t_atoms(As,Gs),append(Fs,Gs,Hs).
 
+isvar(v(_)).
 
 %%% LITERALS  %%%%%%%%
 
-t_literal(not A, not F) :- !,t_atom(A,A1), (A1=[L],!,F=L; F=A1).
+t_literal(not A, not F) :- !,t_atom(A,A1),(A1=[L],!,F=L; F=A1).
 t_literal(A,A1) :- t_atom(A,A1).
 
 %%% BODIES %%%%%%%%%%%
@@ -295,14 +313,12 @@ assert_choice_terms(C,AUXPRED,Vs,[T|Ts],Body):-
 	assertz(rule(C,predic(ATOM),Body)),
 	assert_choice_terms(C,AUXPRED,Vs,Ts,Body).
 
-
-
-
 %%% REMOVING QUANTIFIERS: new auxiliary predicates
 	
 freevars(v(X),[v(X)]):-!.
 freevars(vaux(X),[vaux(X)]):-!.
 freevars(exists(Vs,F),Ws):-!,freevars(F,Us),subtract(Us,Vs,Ws).
+freevars(agg(exists,[Vs,F]),Ws):-!,freevars(Vs,Vs2),freevars(F,Us),subtract(Us,Vs2,Ws).
 freevars(T,Vs):-
 	T =.. [_ | Args],!,
 	freevars_args(Args,Vs).
@@ -311,15 +327,25 @@ freevars_args([F|Fs],Vs):-freevars(F,Vs0),freevars_args(Fs,Vs1),merge_set(Vs0,Vs
 
 negative_formula(not _).
 negative_exists(not exists(_,_)).
+positive_exists(exists(_,_)).
 
+remove_quantifiers(Bp0,(H :- B),Rs):-
+    filter(positive_exists,B, BpE,B2),
+    BpE \= [],!,                          % We had positive exists formulas
+    remove_positive_exists(BpE,B1),
+    append(B1,B2,Body),
+    remove_quantifiers(Bp0,(H :- Body),Rs).
+    
 remove_quantifiers(Bp0,(H :- B),[(H :- Body) | Rs]):-
-    remove_positive_exists(B,B1),
-	filter(negative_formula,B1,Bn,Bp1),
-	filter(negative_exists,Bn,Bne,Bn1),
-	append(Bp0,Bp1,Bp),
-	neg_exists(Bp,Bne,Bne1,Rs),
-	append_all([Bp,Bn1,Bne1],Body).
-
+    filter(negative_exists,B,BnE,BwE),    % BwE = literals in B without exists
+    BnE \= [],!,                          % We had negative exists formulas
+    filter(negative_formula,BwE,Bn,Bp1),
+    append(Bp0,Bp1,Bp),
+    neg_exists(Bp,BnE,BnE1,Rs),
+    append_all([Bp,Bn,BnE1],Body).
+    
+remove_quantifiers(_,R,[R]).                % We had no quantifiers -> return rule untouched
+    
 remove_positive_exists([],[]):-!.
 remove_positive_exists([exists(_Vs,F)|B],B2):-!,remove_positive_exists(B,B1),append(F,B1,B2).
 remove_positive_exists([F|B],[F|B1]):-!,remove_positive_exists(B,B1).
@@ -334,38 +360,6 @@ neg_exists(Bp,[not exists(Vs,F)|Fs],[not A|Fs1],Rs):-
 	remove_quantifiers(Bp,Rule,Rs1),
 	append(Rs0,Rs1,Rs).
 
-%%% LPARSE DIVISIONS
-% The auxiliary 'divide' predicate must be made context dependent in order to avoid unsafe vars
-
-lparse_divides([],[]):-!.
-lparse_divides([(H :- B)|Rs],Us):-
-	filter(iscontext,B,Context,_),
-	freevars(Context,Vars),
-	body_divides(Context,Vars,B,B1,Ss),
-	lparse_divides(Rs,Ts),
-	append(Ss,[(H:-B1)|Ts],Us).
-
-iscontext(not _):-!,fail.
-iscontext(divide(_,_,_)):-!,fail.
-iscontext(modulo(_,_,_)):-!,fail.
-iscontext(_).
-
-body_divides(_Context,_Vars,[],[],[]):-!.
-body_divides(Context,Vars,[LIT|B],[DIVATOM|B1],[Rule1,Rule2|Rs]):-
-	divideop(LIT,X,Y,Z, RESULT),!,
-	newpred(DEFDIVIDE),	DEFDIVATOM =.. [DEFDIVIDE | Vars],
-	append(Context,[Y '!=' 0],Cond),
-	Rule1 = (DEFDIVATOM :- Cond),
-	newpred(DIVIDE), DIVATOM =.. [DIVIDE,X,Y,Z],
-	append(Context,[DEFDIVATOM, RESULT],Cond2),
-	Rule2 = (DIVATOM :- Cond2),
-	body_divides(Context,Vars,B,B1,Rs).
-	
-body_divides(Context,Vars,[Lit|B],[Lit|B1],Rs):-body_divides(Context,Vars,B,B1,Rs).
-
-divideop(divide(X,Y,Z),X,Y,Z,Z=X/Y).
-divideop(modulo(X,Y,Z),X,Y,Z,Z=(X '\\ ' Y)). % modulo
-
 %%% OTHER PREDICATES
 
 newvar(AUXVAR):-varnum(X),incr(varnum,1),concat_atom(['AUX',X],AUXVAR).
@@ -374,10 +368,10 @@ newpred(AUXPRED) :- prednum(N),incr(prednum,1), concat_atom(['aux',N],AUXPRED).
 replacevars(v(X),V):-concat_atom(['VAR',X],V).
 replacevars(vaux(X),X).
 
-write_rule(R) :-
+write_rule(R) :- 
 	map_subterms(replacevars,[v/1,vaux/1],R,R1),
 	R1=(H :- B),
-    replace_not_eq(B,B1),
+	replace_not_eq(B,B1),
 	(H = [],!; write(H)),
 	(B1=[],!; write(' :- '),binop(',',B1,B2),write(B2)),
 	write('.').

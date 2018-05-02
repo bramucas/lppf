@@ -20,17 +20,18 @@ abs		{ return ABS; }
 in		{ return IN; }
 not		{ return NOT; }
 or		{ return OR; }
-"#function" {return FUNCTION;}
+"#sum" 	        {return SUM; }
+"#function"     {return FUNCTION;}
+"#choose"       {return CHOOSE;}
 
 "::"		{ return LABEL;}
 ":-"		{ return IF; }
 ".."		{ return DOTS; }
 ":="		{ return ASSIGN; }
 "^="		{ return DEFVALUE; }
-"\\E"		{ return EXISTS; }
-"#show"         { return SHOW; }
+"#exists"	{ return EXISTS; }
+"#show"     { return SHOW; }
 "#explain"		{ return EXPLAIN; }
-"\\forsome"		{ return FORSOME; }
 
 ">="		{ return GEQ; }	
 "<="		{ return LEQ; }	
