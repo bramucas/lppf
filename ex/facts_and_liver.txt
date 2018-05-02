@@ -337,7 +337,6 @@ psoft_category(12):=encephalopathy.
 psoft_category(13):=portal_vein_thrombosis.
 psoft_category(14):=ascites_pretransplant.
 
-
 % psoft_risk(RuleNumber, RuleName, RuleValor)
 psoft_risk(age_60):=4.
 psoft_risk(bmi6_35):=2.
@@ -354,50 +353,136 @@ psoft_risk(encephalopathy):=2.
 psoft_risk(portal_vein_thrombosis):=5.
 psoft_risk(ascites_pretransplant):=3.
 
-
 %%%%%%%%%%%%%%%%%%%%%% PSOFT rules with constraints %%%%%%%%%%%%%%%%%%%%%%
 
-si_age60 :: psoft(age_60,P):= psoft_risk(age_60)    :- age(P)>60.
+si_age60 :: 
+  psoft(age_60,P):= psoft_risk(age_60) :- 
+        age(P)>60.
 
-si_bmi6_35 :: psoft(bmi6_35,P):= psoft_risk(bmi6_35)  :- bmi(P)>35.
+si_bmi6_35 :: 
+  psoft(bmi6_35,P):= psoft_risk(bmi6_35) :- 
+        bmi(P)>35.
 
-si_one_prev_trans :: psoft(one_previous_transplant,P):= psoft_risk(one_previous_transplant)        :- p_trans(P)=1.
+si_one_prev_trans :: 
+  psoft(one_previous_transplant,P):= psoft_risk(one_previous_transplant) :- 
+        p_trans(P)=1.
 
-si_two_prev_trans :: psoft(two_previous_transpant,P):= psoft_risk(two_previous_transpant)        :- p_trans(P)>1.
+si_two_prev_trans :: 
+  psoft(two_previous_transpant,P):= psoft_risk(two_previous_transpant) :- 
+        p_trans(P)>1.
 
-si_prev_abdom_surg :: psoft(previous_abdominal_surgey,P):= psoft_risk(previous_abdominal_surgey)  :- ab_surgery(P).
+si_prev_abdom_surg :: 
+  psoft(previous_abdominal_surgey,P):= psoft_risk(previous_abdominal_surgey) :- 
+        ab_surgery(P).
 
-si_albumin :: psoft(albumin,P):= psoft_risk(albumin) :- albumin_fl(P)<200.
+si_albumin :: 
+  psoft(albumin,P):= psoft_risk(albumin) :- 
+        albumin_fl(P)<200.
 
-si_dialysis :: psoft(dialysis_prior_transplantation,P):= psoft_risk(dialysis_prior_transplantation)        :- dialysis(P).
+si_dialysis :: 
+  psoft(dialysis_prior_transplantation,P):= psoft_risk(dialysis_prior_transplantation) :- 
+        dialysis(P).
 
-si_icu :: psoft(intensive_care_unit_pretransplant,P):= psoft_risk(intensive_care_unit_pretransplant)  :- icu(P).
+si_icu :: 
+  psoft(intensive_care_unit_pretransplant,P):= psoft_risk(intensive_care_unit_pretransplant) :- 
+        icu(P).
 
-si_hospital :: psoft(admitted_to_hospital_pretransplant,P):= psoft_risk(admitted_to_hospital_pretransplant) :- hospital(P).
+si_hospital :: 
+  psoft(admitted_to_hospital_pretransplant,P):= psoft_risk(admitted_to_hospital_pretransplant) :- 
+        hospital(P).
 
-si_meld_30 :: psoft(meld_30,P):= psoft_risk(meld_30) :- meld(P)>30.
+si_meld_30 :: 
+  psoft(meld_30,P):= psoft_risk(meld_30) :- 
+        meld(P)>30.
 
-si_life_support_pretrans :: psoft(life_support_pretransplant,P):= psoft_risk(life_support_pretransplant) :- l_sup(P).
+si_life_support_pretrans :: 
+  psoft(life_support_pretransplant,P):= psoft_risk(life_support_pretransplant) :- 
+        l_sup(P).
 
-si_encheph :: psoft(encephalopathy,P):= psoft_risk(encephalopathy) :- enceph(P).
+si_encheph :: 
+  psoft(encephalopathy,P):= psoft_risk(encephalopathy) :- 
+        enceph(P).
 
-si_portal_thromb :: psoft(portal_vein_thrombosis,P):= psoft_risk(portal_vein_thrombosis)  :- p_thromb(P).
+si_portal_thromb :: 
+  psoft(portal_vein_thrombosis,P):= psoft_risk(portal_vein_thrombosis) :- 
+      p_thromb(P).
 
-si_ascites_pretransplant :: psoft(ascites_pretransplant,P):= psoft_risk(ascites_pretransplant)    :- ascites(P).
+si_ascites_pretransplant :: 
+  psoft(ascites_pretransplant,P):= psoft_risk(ascites_pretransplant) :- 
+      ascites(P).
 
 psoft(C,P) ^= 0 :- transplant(P), psoft_category(R)=C.
 
 %%%%%%%%%%%%%%%%%%%%%% Calculating psoft %%%%%%%%%%%%%%%%%%%%%%
 
 % Necesario para no tener variables unsafe en el cálculo
-%psoft_risk(R,P) :- psoft(R,P,X).
-
 
 psoft_sum(0,P):=0 :- transplant(P).
 psoft_sum(R,P):= psoft(psoft_category(R),P) + psoft_sum(R-1,P).
 
-%psoft_sum(R,P):= Suma :- psoft_category(R)=Cat, psoft(Cat,P)=X1, NextR=R-1, psoft_sum(NextR,P)=X2, Suma=X1+X2.
-
 psoft_cal(P) := psoft_sum(14,P).
 
-#explain psoft_cal(P) :- psoft_cal(P) = V, V > 15, V < 25, alive(P).
+
+%%%%%%%%%%%%%%%%%%%%%%% Rules of soft %%%%%%%%%%%%%%%%%%%%%%%%
+
+soft_category(1):= psoft.
+soft_category(2):= portal_bleed_48h_pretransplant.
+soft_category(3):= donor_age2_gt_60.
+soft_category(4):= donor_cerebral_vascular_accident.
+soft_category(5):= donor_creatinine_15.
+soft_category(6):= national_allocation.
+soft_category(7):= donor_age2_10_20.
+soft_category(8):= cold_ischemia_0_6h.
+
+%soft_risk(psoft).
+soft_risk(portal_bleed_48h_pretransplant):= 6.
+soft_risk(donor_age2_gt_60):= 3.
+soft_risk(donor_cerebral_vascular_accident):= 2.
+soft_risk(donor_creatinine_15):= 2.
+soft_risk(national_allocation):= 2.
+soft_risk(donor_age2_10_20):= -2.
+soft_risk(cold_ischemia_0_6h):= -3.
+
+%%%%%%%%%%%%%%%%%%%%%% SOFT rules with constraints %%%%%%%%%%%%%%%%%%%%%%
+
+soft(psoft,P) := psoft_cal(P).
+
+si_soft_portal_bleed :: 
+  soft(portal_bleed_48h_pretransplant,P) := soft_risk(portal_bleed_48h_pretransplant) :- 
+      portal_bleed(P).
+
+si_donor_age_60 :: 
+  soft(donor_age2_gt_60,P) := soft_risk(donor_age2_gt_60) :- 
+      donor_age(P) > 60.
+
+si_donor_vascular_acc :: 
+  soft(donor_cerebral_vascular_accident,P) := soft_risk(donor_cerebral_vascular_accident) :- 
+      vascular_acc(P).
+
+si_donor_creatinine :: 
+  soft(donor_creatinine_15,P) := soft_risk(donor_creatinine_15) :- 
+      creatinine_fl(P) > 150.
+
+% No hay datos sobre national_allocation
+%soft(national_allocation,P) := soft_risk(national_allocation) :- sel_national_allocation(P).
+
+si_donor_age_10_20 :: 
+  soft(donor_age2_10_20,P) := soft_risk(donor_age2_10_20) :- 
+      donor_age(P) = Age, Age <= 10, Age >= 20.
+
+si_cold_ischemia_6 :: 
+  soft(cold_ischemia_0_6h,P) := soft_risk(cold_ischemia_0_6h) :- 
+      cold_ischemia(P) = Time, Time <= 6*60.
+
+soft(C,P) ^= 0 :- #exists{C, transplant(P) : #exists{R : soft_category(R) = C} }.
+
+%%%%%%%%%%%%%%%%%%%%%% Calculating psoft %%%%%%%%%%%%%%%%%%%%%%
+
+soft_sum(0,P):=0 :- transplant(P).
+soft_sum(R,P):= soft(soft_category(R),P) + soft_sum(R-1,P).
+
+soft_cal(P) := soft_sum(8,P).
+
+
+
+#explain soft_cal(P).
