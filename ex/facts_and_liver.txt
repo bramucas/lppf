@@ -355,59 +355,59 @@ psoft_risk(ascites_pretransplant):=3.
 
 %%%%%%%%%%%%%%%%%%%%%% PSOFT rules with constraints %%%%%%%%%%%%%%%%%%%%%%
 
-si_age60 :: 
+age60 :: 
   psoft(age_60,P):= psoft_risk(age_60) :- 
         age(P)>60.
 
-si_bmi6_35 :: 
+bmi6_35 :: 
   psoft(bmi6_35,P):= psoft_risk(bmi6_35) :- 
         bmi(P)>35.
 
-si_one_prev_trans :: 
+one_prev_trans :: 
   psoft(one_previous_transplant,P):= psoft_risk(one_previous_transplant) :- 
         p_trans(P)=1.
 
-si_two_prev_trans :: 
+two_prev_trans :: 
   psoft(two_previous_transpant,P):= psoft_risk(two_previous_transpant) :- 
         p_trans(P)>1.
 
-si_prev_abdom_surg :: 
+prev_abdom_surg :: 
   psoft(previous_abdominal_surgey,P):= psoft_risk(previous_abdominal_surgey) :- 
         ab_surgery(P).
 
-si_albumin :: 
+albumin :: 
   psoft(albumin,P):= psoft_risk(albumin) :- 
         albumin_fl(P)<200.
 
-si_dialysis :: 
+dialysis :: 
   psoft(dialysis_prior_transplantation,P):= psoft_risk(dialysis_prior_transplantation) :- 
         dialysis(P).
 
-si_icu :: 
+icu :: 
   psoft(intensive_care_unit_pretransplant,P):= psoft_risk(intensive_care_unit_pretransplant) :- 
         icu(P).
 
-si_hospital :: 
+hospital :: 
   psoft(admitted_to_hospital_pretransplant,P):= psoft_risk(admitted_to_hospital_pretransplant) :- 
         hospital(P).
 
-si_meld_30 :: 
+meld_30 :: 
   psoft(meld_30,P):= psoft_risk(meld_30) :- 
         meld(P)>30.
 
-si_life_support_pretrans :: 
+life_support_pretrans :: 
   psoft(life_support_pretransplant,P):= psoft_risk(life_support_pretransplant) :- 
         l_sup(P).
 
-si_encheph :: 
+encheph :: 
   psoft(encephalopathy,P):= psoft_risk(encephalopathy) :- 
         enceph(P).
 
-si_portal_thromb :: 
+portal_thromb :: 
   psoft(portal_vein_thrombosis,P):= psoft_risk(portal_vein_thrombosis) :- 
       p_thromb(P).
 
-si_ascites_pretransplant :: 
+ascites_pretransplant :: 
   psoft(ascites_pretransplant,P):= psoft_risk(ascites_pretransplant) :- 
       ascites(P).
 
@@ -445,32 +445,33 @@ soft_risk(cold_ischemia_0_6h):= -3.
 
 %%%%%%%%%%%%%%%%%%%%%% SOFT rules with constraints %%%%%%%%%%%%%%%%%%%%%%
 
-soft(psoft,P) := psoft_cal(P).
+psoft_rules ::
+  soft(psoft,P) := psoft_cal(P).
 
-si_soft_portal_bleed :: 
+soft_portal_bleed :: 
   soft(portal_bleed_48h_pretransplant,P) := soft_risk(portal_bleed_48h_pretransplant) :- 
       portal_bleed(P).
 
-si_donor_age_60 :: 
+donor_age_60 :: 
   soft(donor_age2_gt_60,P) := soft_risk(donor_age2_gt_60) :- 
       donor_age(P) > 60.
 
-si_donor_vascular_acc :: 
+donor_vascular_acc :: 
   soft(donor_cerebral_vascular_accident,P) := soft_risk(donor_cerebral_vascular_accident) :- 
       vascular_acc(P).
 
-si_donor_creatinine :: 
+donor_creatinine :: 
   soft(donor_creatinine_15,P) := soft_risk(donor_creatinine_15) :- 
       creatinine_fl(P) > 150.
 
 % No hay datos sobre national_allocation
 %soft(national_allocation,P) := soft_risk(national_allocation) :- sel_national_allocation(P).
 
-si_donor_age_10_20 :: 
+donor_age_10_20 :: 
   soft(donor_age2_10_20,P) := soft_risk(donor_age2_10_20) :- 
       donor_age(P) = Age, Age <= 10, Age >= 20.
 
-si_cold_ischemia_6 :: 
+cold_ischemia_6 :: 
   soft(cold_ischemia_0_6h,P) := soft_risk(cold_ischemia_0_6h) :- 
       cold_ischemia(P) = Time, Time <= 6*60.
 
