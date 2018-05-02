@@ -20,8 +20,9 @@ abs		{ return ABS; }
 in		{ return IN; }
 not		{ return NOT; }
 or		{ return OR; }
-"#sum"	{return SUM; }
-"#function" {return FUNCTION;}
+"#sum" 	        {return SUM; }
+"#function"     {return FUNCTION;}
+"#choose"       {return CHOOSE;}
 
 ":-"		{ return IF; }
 ".."		{ return DOTS; }
