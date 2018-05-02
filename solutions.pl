@@ -1,4 +1,4 @@
-:- dynamic sol_fact/3, numsol/1, cause/3.
+:- dynamic sol_fact/3, numsol/1, cause/3, explainCount/1.
 
 display_solutions(NSol):-
 	set_count(numsol,0),
@@ -111,9 +111,13 @@ writeCauses :-
 				justExplain(Term),
 				cause(Term, Label, Value, _RuleNumber, Causes),
 				writeCauseTree(Term, Label, Value, Causes, 0),nl,
+				incr(explainCount,1),
 				fail
 			;	true
-			),!	
+			),
+			explainCount(ExplainCount),
+			writelist([ExplainCount, ' ocurrences explained.']),nl,
+			!	
 		;
 			repeat,
 			(
