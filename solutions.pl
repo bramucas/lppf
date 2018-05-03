@@ -14,7 +14,13 @@ show_next_solution:-
 	 atom_to_term(T,Term,_),writefact(Term),
 	 (D=0' ,!,get_next_fact; true),
 	 show_next_solution,nl,
-	 writeCauses
+	 findCauses,
+	 (
+	 	opt(report),
+	 	writeReport
+	 ;
+	 	writeCauses
+	 )
 	).
 show_next_solution.	
 
@@ -64,9 +70,9 @@ writefact(Term):-
 	  	true
 	).
 
-% writeCauses
-%	First find the causes of fired rules, and finally write them.
-writeCauses :-
+% findCauses
+%	Find the causes of fired rules.
+findCauses :-
 	% Facts first (rules without body)
 	repeat,
 	(
@@ -100,7 +106,11 @@ writeCauses :-
 		),
 		fail
 	;	true
-	),!,
+	),!.
+
+% writeCauses
+% Write ASCII trees for explanations.
+writeCauses :-
 	% Writting causes
 	(
 	  current_predicate(cause/5) ->
@@ -130,6 +140,89 @@ writeCauses :-
 	; 
 		true
 	).
+
+writeReport :-
+	(
+	  current_predicate(cause/5) ->
+	  	makeDirectory('report'),
+	  	makeGraphs
+	; 
+		write('Report cant be written'),nl
+	).
+
+makeGraphs :-
+	(
+	  current_predicate(justExplain/1) ->
+		repeat,
+		(
+			justExplain(Term),
+			cause(Term, Label, Value, RuleNumber, Causes),
+			
+			makeGraph(Term, Label, Value, RuleNumber, Causes),
+
+			incr(explainCount,1),
+			fail
+		;	true
+		),
+		explainCount(ExplainCount),
+		writelist([ExplainCount, ' ocurrences explained.']),nl,
+		!	
+	;
+		repeat,
+		(
+			cause(Term, Label, Value, RuleNumber, Causes),
+			makeGraph(Term, Label, Value, RuleNumber, Causes), 
+			fail
+		;	true
+	),!
+).
+
+makeGraph(Term, Label, Value, RuleNumber, Causes) :-
+	% Create and open file
+	term_to_atom(Term, WTerm),
+	concat_atom(['report/', WTerm] ,DirectoryName),
+	makeDirectory(DirectoryName),
+
+	concat_atom([DirectoryName, '/', RuleNumber, '.dot'], FileName),
+	open(FileName, write, FileStream),
+
+	% Writting dot file
+	write(FileStream, 'digraph {\n'),
+	buildEdges(FileStream, Term, Label, Value, Causes),
+	write(FileStream, '}'),
+	close(FileStream),
+
+	% Creating image
+	concat_atom([DirectoryName, '/', RuleNumber, '.jpg'], JpgFileName),
+	concat_atom(["dot -Tjpg '", FileName,"' > '", JpgFileName, "'"], Command),
+	shell(Command).
+
+buildEdges(FileStream, Term, Label, Value, [HCause | Tail]) :-
+	HCause =.. [cause|[CTerm, CLabel, CValue, _RuleNumber, CTermCauses]],
+
+	(
+		opt(labels),
+		term_to_atom(Label, WTerm), term_to_atom(CLabel, WCTerm),!
+	;
+		term_to_atom(Term, WTerm), term_to_atom(CTerm, WCTerm),!
+	),
+	
+	concat_atom(['"', WCTerm, '=', CValue, '" -> "', WTerm, '=', Value, '";\n'], GraphLine),
+	write(FileStream, GraphLine),
+	
+	buildEdges(FileStream, CTerm, CLabel, CValue, CTermCauses),
+	buildEdges(FileStream, Term, Label, Value, Tail).
+
+buildEdges(_, _, _, _, []).
+
+
+makeDirectory(Path) :-
+	exists_directory(Path).
+
+makeDirectory(Path) :-
+	\+ exists_directory(Path),
+	make_directory(Path).
+
 
 % Writes an ASCII tree explanation for a cause
 writeCauseTree(Term, Label, Value, Causes, Level) :- 
