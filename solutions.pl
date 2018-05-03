@@ -145,10 +145,41 @@ writeReport :-
 	(
 	  current_predicate(cause/5) ->
 	  	makeDirectory('report'),
-	  	makeGraphs
+	  	makeGraphs,
+	  	makeReport,
+	  	shell('sensible-browser report/report.html')
 	; 
 		write('Report cant be written'),nl
 	).
+
+makeReport :-
+	open('report/report.html', write, ReportFile),
+	write(ReportFile, 
+		'<html>
+			<head>
+				<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+			</head>
+			<body>
+			<div class="container">\n'
+		),
+
+	repeat,
+	(
+		graphPath(Term, RuleNumber ,JpgFileName),
+
+		term_to_atom(Term, WTerm), 
+		concat_atom(['<h2>', RuleNumber, ' - ', WTerm, '</h2>\n'], TitleTag),
+		concat_atom(['<div class="text-center border"><img src="', JpgFileName, '"></img>\n'], ImageTag),
+
+		write(ReportFile, TitleTag),
+		write(ReportFile, ImageTag),
+
+		fail
+	;	true
+	),!,
+
+	write(ReportFile, '</div></body></html>'),
+	close(ReportFile).
 
 makeGraphs :-
 	(
@@ -195,7 +226,11 @@ makeGraph(Term, Label, Value, RuleNumber, Causes) :-
 	% Creating image
 	concat_atom([DirectoryName, '/', RuleNumber, '.jpg'], JpgFileName),
 	concat_atom(["dot -Tjpg '", FileName,"' > '", JpgFileName, "'"], Command),
-	shell(Command).
+	shell(Command),
+
+	% Saving path
+	concat_atom([WTerm, '/', RuleNumber, '.jpg'], RelativeImagePath),
+	assert(graphPath(Term, RuleNumber, RelativeImagePath)).
 
 buildEdges(FileStream, Term, Label, Value, [HCause | Tail]) :-
 	HCause =.. [cause|[CTerm, CLabel, CValue, _RuleNumber, CTermCauses]],
