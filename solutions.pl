@@ -155,6 +155,9 @@ writeReport :-
 	).
 
 makeReport :-
+	% Copy resources
+	copy_directory('resources', 'report/.resources'),
+
 	open('report/report.html', write, ReportFile),
 	
 	htmlReportHeading(HtmlReportHeading),
