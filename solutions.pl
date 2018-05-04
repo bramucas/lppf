@@ -83,7 +83,7 @@ findCauses :-
 		replaceValues(ArgValues, VarNames, [OriginalLabel], [LabelFired]),
 		append(_Args2, [ValueFired], ArgValues),
 
-		assert(cause(TermFired, LabelFired, ValueFired, RuleNumber, [])),
+		assert(cause(TermFired, LabelFired, ValueFired, RuleNumber, is_leaf)),
 		fail
 	;	
 		true
@@ -147,7 +147,7 @@ writeReport :-
 	  	makeDirectory('report'),
 	  	makeGraphs,
 	  	makeReport,
-	  	shell('sensible-browser report/report.html')
+	  	shell('sensible-browser report/report.html &')
 	; 
 		write('Report cant be written'),nl
 	).
@@ -156,11 +156,11 @@ makeReport :-
 	open('report/report.html', write, ReportFile),
 	write(ReportFile, 
 		'<html>
-			<head>
-				<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-			</head>
-			<body>
-			<div class="container">\n'
+<head>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">\n'
 		),
 
 	repeat,
@@ -236,10 +236,16 @@ buildEdges(FileStream, Term, Label, Value, [HCause | Tail]) :-
 	HCause =.. [cause|[CTerm, CLabel, CValue, _RuleNumber, CTermCauses]],
 
 	(
-		opt(labels),
-		term_to_atom(Label, WTerm), term_to_atom(CLabel, WCTerm),!
+		Label = no_label ->
+		term_to_atom(Term, WTerm),!
 	;
-		term_to_atom(Term, WTerm), term_to_atom(CTerm, WCTerm),!
+		term_to_atom(Label, WTerm),!
+	),
+	(
+		CLabel = no_label ->
+			term_to_atom(CTerm, WCTerm),!	
+	;
+		term_to_atom(CLabel, WCTerm),!
 	),
 	
 	concat_atom(['"', WCTerm, '=', CValue, '" -> "', WTerm, '=', Value, '";\n'], GraphLine),
@@ -248,7 +254,27 @@ buildEdges(FileStream, Term, Label, Value, [HCause | Tail]) :-
 	buildEdges(FileStream, CTerm, CLabel, CValue, CTermCauses),
 	buildEdges(FileStream, Term, Label, Value, Tail).
 
-buildEdges(_, _, _, _, []).
+buildEdges(FileStream, Term, Label, Value, is_leaf) :-
+	(
+		Label = no_label ->
+		term_to_atom(Term, WTerm),!
+	;
+		term_to_atom(Label, WTerm),!
+	),
+	
+	concat_atom(['"', WTerm, '=', Value, '";\n'], GraphLine),
+	write(FileStream, GraphLine).
+
+buildEdges(FileStream, Term, Label, Value, []) :-
+	(
+		Label = no_label ->
+		term_to_atom(Term, WTerm),!
+	;
+		term_to_atom(Label, WTerm),!
+	),
+	
+	concat_atom(['"', WTerm, '=', Value, '";\n'], GraphLine),
+	write(FileStream, GraphLine).
 
 
 makeDirectory(Path) :-
@@ -366,7 +392,12 @@ evaluateCausesLabels([HTerm|Tail], MoreCauses) :-
 	current_predicate(cause/5),
 	cause(HTerm, no_label, _Value, _RuleNumber, TermCauses),!,
 	evaluateCausesLabels(Tail, TailCauses),
-	append(TermCauses, TailCauses, MoreCauses).
+	(
+		TermCauses=is_leaf ->
+			MoreCauses = TailCauses
+	;
+		append(TermCauses, TailCauses, MoreCauses)
+	).
 
 evaluateCausesLabels([HTerm|Tail], [Cause|MoreCauses]) :-
 	current_predicate(cause/5),
