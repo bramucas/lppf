@@ -16,7 +16,7 @@ show_next_solution:-
 	 show_next_solution,nl,
 	 findCauses,
 	 (
-	 	opt(report),
+	 	opt(report),!,
 	 	writeReport
 	 ;
 	 	writeCauses
@@ -145,8 +145,10 @@ writeReport :-
 	(
 	  current_predicate(cause/5) ->
 	  	makeDirectory('report'),
-	  	makeGraphs,
-	  	makeReport,
+	  	write('Making graphs'),
+	  	makeGraphs,nl,
+	  	write('Making html report'),
+	  	makeReport,nl,
 	  	shell('sensible-browser report/report.html &')
 	; 
 		write('Report cant be written'),nl
@@ -154,31 +156,46 @@ writeReport :-
 
 makeReport :-
 	open('report/report.html', write, ReportFile),
-	write(ReportFile, 
-		'<html>
-<head>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-</head>
-<body>
-<div class="container">\n'
-		),
+	
+	htmlReportHeading(HtmlReportHeading),
+	
+	(
+		current_predicate(explainCount/1),
+		explainCount(ExplainCount),
+		concat_atom([ExplainCount, ' ocurrences explained.'], ExplainingResults)
+	;
+		ExplainingResults = 'All ocurrences explained.'
+	),
+	
+	replaceString(HtmlReportHeading, '#ResultsNumber#', ExplainingResults, ReadyHeading),
+	write(ReportFile, ReadyHeading),
 
 	repeat,
 	(
-		graphPath(Term, RuleNumber ,JpgFileName),
+		graphPath(Term, Value, Label, _RuleNumber ,JpgFileName),
 
-		term_to_atom(Term, WTerm), 
-		concat_atom(['<h2>', RuleNumber, ' - ', WTerm, '</h2>\n'], TitleTag),
-		concat_atom(['<div class="text-center border"><img src="', JpgFileName, '"></img>\n'], ImageTag),
+		htmlReportImage(HtmlReportImage),
 
-		write(ReportFile, TitleTag),
-		write(ReportFile, ImageTag),
+		replaceString(HtmlReportImage, '#ImagePath#', JpgFileName, AuxString),
+		(
+			Label = no_label ->
+			term_to_atom(Term, WTerm),
+			concat_atom([WTerm, ' = ', Value], Title)	
+		;
+			term_to_atom(Label, WLabel),
+			concat_atom([WLabel, ' = ', Value], Title)
+		),
+		
+		replaceString(AuxString, '#Term#', Title, ReadyImage),
 
+		write(ReportFile, ReadyImage),
+		write('.'),flush_output(),
 		fail
 	;	true
 	),!,
 
-	write(ReportFile, '</div></body></html>'),
+	htmlReportEnding(HtmlReportEnding),
+	write(ReportFile, HtmlReportEnding),
 	close(ReportFile).
 
 makeGraphs :-
@@ -218,7 +235,7 @@ makeGraph(Term, Label, Value, RuleNumber, Causes) :-
 	open(FileName, write, FileStream),
 
 	% Writting dot file
-	write(FileStream, 'digraph {\n'),
+	write(FileStream, 'digraph {\n rankdir = "BT";\n node [style=filled, color=black];\n'),
 	buildEdges(FileStream, Term, Label, Value, Causes),
 	write(FileStream, '}'),
 	close(FileStream),
@@ -230,16 +247,21 @@ makeGraph(Term, Label, Value, RuleNumber, Causes) :-
 
 	% Saving path
 	concat_atom([WTerm, '/', RuleNumber, '.jpg'], RelativeImagePath),
-	assert(graphPath(Term, RuleNumber, RelativeImagePath)).
+	assert(graphPath(Term, Value, Label, RuleNumber, RelativeImagePath)),
+	write('.'),flush_output().
 
 buildEdges(FileStream, Term, Label, Value, [HCause | Tail]) :-
 	HCause =.. [cause|[CTerm, CLabel, CValue, _RuleNumber, CTermCauses]],
 
 	(
 		Label = no_label ->
-		term_to_atom(Term, WTerm),!
+		term_to_atom(Term, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="lightgrey"];\n'], Color),
+		write(FileStream, Color),!
 	;
-		term_to_atom(Label, WTerm),!
+		term_to_atom(Label, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="gold2"];\n'], Color),
+		write(FileStream, Color),!
 	),
 	(
 		CLabel = no_label ->
@@ -257,9 +279,13 @@ buildEdges(FileStream, Term, Label, Value, [HCause | Tail]) :-
 buildEdges(FileStream, Term, Label, Value, is_leaf) :-
 	(
 		Label = no_label ->
-		term_to_atom(Term, WTerm),!
+		term_to_atom(Term, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="lightgrey"];\n'], Color),
+		write(FileStream, Color),!
 	;
-		term_to_atom(Label, WTerm),!
+		term_to_atom(Label, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="gold2"];\n'], Color),
+		write(FileStream, Color),!
 	),
 	
 	concat_atom(['"', WTerm, '=', Value, '";\n'], GraphLine),
@@ -268,9 +294,13 @@ buildEdges(FileStream, Term, Label, Value, is_leaf) :-
 buildEdges(FileStream, Term, Label, Value, []) :-
 	(
 		Label = no_label ->
-		term_to_atom(Term, WTerm),!
+		term_to_atom(Term, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="lightgrey"];\n'], Color),
+		write(FileStream, Color),!
 	;
-		term_to_atom(Label, WTerm),!
+		term_to_atom(Label, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="gold2"];\n'], Color),
+		write(FileStream, Color),!
 	),
 	
 	concat_atom(['"', WTerm, '=', Value, '";\n'], GraphLine),
