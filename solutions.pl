@@ -156,11 +156,12 @@ writeReport :-
 
 makeReport :-
 	% Copy resources
-	copy_directory('resources', 'report/.resources'),
+	copy_directory('reportTemplate/resources', 'report/.resources'),
 
 	open('report/report.html', write, ReportFile),
 	
-	htmlReportHeading(HtmlReportHeading),
+	htmlReportTemplate(HtmlReportTemplate),
+	
 	
 	(
 		current_predicate(explainCount/1),
@@ -170,16 +171,15 @@ makeReport :-
 		ExplainingResults = 'All ocurrences explained.'
 	),
 	
-	replaceString(HtmlReportHeading, '#ResultsNumber#', ExplainingResults, ReadyHeading),
-	write(ReportFile, ReadyHeading),
+	replaceString(HtmlReportTemplate, '#ResultsNumber#', ExplainingResults, AuxHtmlReport),
 
 	repeat,
 	(
 		graphPath(Term, Value, Label, _RuleNumber ,JpgFileName),
 
-		htmlReportImage(HtmlReportImage),
+		htmlReportRowTemplate(HtmlRowTemplate),
 
-		replaceString(HtmlReportImage, '#ImagePath#', JpgFileName, AuxString),
+		replaceString(HtmlRowTemplate, '#ImagePath#', JpgFileName, AuxString),
 		(
 			Label = no_label ->
 			term_to_atom(Term, WTerm),
@@ -189,16 +189,23 @@ makeReport :-
 			concat_atom([WLabel, ' = ', Value], Title)
 		),
 		
-		replaceString(AuxString, '#Term#', Title, ReadyImage),
+		replaceString(AuxString, '#Term#', Title, Row),
 
-		write(ReportFile, ReadyImage),
+		assert(reportRow(Row)),
 		write('.'),flush_output(),
 		fail
 	;	true
 	),!,
 
-	htmlReportEnding(HtmlReportEnding),
-	write(ReportFile, HtmlReportEnding),
+	(
+	current_predicate(reportRow/1) ->
+		findall(X, reportRow(X), RowList),
+		concat_atom(RowList, Rows),
+		replaceString(AuxHtmlReport, '#Terms#', Rows, ReadyHtml)
+	;
+		replaceString(AuxHtmlReport, '#Terms#', 'No results', ReadyHtml)
+	),
+	write(ReportFile, ReadyHtml),
 	close(ReportFile).
 
 makeGraphs :-
