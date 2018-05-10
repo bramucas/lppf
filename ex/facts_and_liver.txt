@@ -482,8 +482,14 @@ soft(C,P) ^= 0 :- #exists{C, transplant(P) : #exists{R : soft_category(R) = C} }
 soft_sum(0,P):=0 :- transplant(P).
 soft_sum(R,P):= soft(soft_category(R),P) + soft_sum(R-1,P).
 
-soft_cal(P) := soft_sum(8,P).
+s(P):: soft_cal(P) := soft_sum(8,P).
+
+soft_level(P) := l   :- soft_cal(P)<=5.
+soft_level(P) := lm  :- soft_cal(P)=X, 6<=X, X<=15.
+soft_level(P) := hm  :- soft_cal(P)=X, 16<=X, X<=35.
+soft_level(P) := h   :- soft_cal(P)=X, 36<=X, X<=40.
+soft_level(P) := f   :- soft_cal(P)=X, 40<X.
 
 
-
-#explain soft_cal(P).
+%#explain soft_cal(P).
+#explain soft_level(P).
