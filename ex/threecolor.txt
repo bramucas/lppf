@@ -1,4 +1,4 @@
-color(C) in {r,g,b} :- country(C).
+color(C) := #choose{r,g,b} :- country(C).
 :- neighbor(C,D), color(C)=color(D).
 
 country(ch). country(fr). country(de).

@@ -2,7 +2,7 @@ iscolor(r).
 iscolor(g).
 iscolor(b).
 
-color(C) in {X | iscolor(X) } :- country(C).
+color(C) := #choose{X : iscolor(X) } :- country(C).
 :- neighbor(C,D), color(C)=color(D).
 
 country(ch). country(fr). country(de).

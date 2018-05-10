@@ -1,5 +1,5 @@
 :- next(X)=next(Y), X!=Y.
-next(X) in {Z | arc(X,Z)} :- node(X).
+next(X):= #choose{Z : arc(X,Z)} :- node(X).
 visited(next(1)).
 visited(next(X)) :- visited(X).
 :- node(X), not visited(X).

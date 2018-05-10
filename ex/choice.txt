@@ -6,5 +6,5 @@ z:=4.
 p(1).
 q(0).
 
-b in {X+2,z,W,z+1} :- p(X),q(W).
+b:= #choose{X+2,z,W,z+1} :- p(X),q(W).
 

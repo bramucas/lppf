@@ -2,10 +2,11 @@ t(a).
 t(b).
 
 % Total decidable function
-% f(X) in {Y | t(Y)} :- t(X).
+% f(X) := #choose{Y : t(Y)} :- t(X).
 
 % Default value is 'a'
-f(X):=a :- not f(X) != a, t(X).
+% f(X):=a :- not f(X) != a, t(X).
+f(X) ^= a :- t(X).
 
 % Exception for the default
 f(b):=b.
