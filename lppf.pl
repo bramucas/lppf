@@ -24,6 +24,7 @@
 :- consult('loadfile.pl').
 :- consult('translate.pl').
 :- consult('solutions.pl').
+:- consult('htmlReportStyle.pl').
 
 :- dynamic opt/1.	% Program options like, for instance, opt(debug)
 
@@ -47,6 +48,7 @@ main([]):- !,
   write('  -q             supresses information header and messages.'),nl,
   write('  -t             just print the translation of functions into predicates.'),nl,
   write('  -l             just print causes of labeled rules.'),nl,
+  write('  -r, --report   builds an html report with graphs.'),nl,
   (opt(nohalt),!; halt(0)).
 
 main(Args):-
@@ -86,6 +88,8 @@ option('-v',debug).
 option('-t',translation).
 option('--nohalt',nohalt).
 option('-l',labels).
+option('-r',report).
+option('--report',report).
 
 header :-
   write(' Logic Programs with Partial Functions 2.0'),nl,

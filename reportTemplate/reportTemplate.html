@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href=".resources/bootstrap.min.css">
+    <link rel="stylesheet" href=".resources/styles.css">
+    <script src=".resources/searchTerms.js" defer></script> 
+
+</head>
+<body>
+
+<div class="container gallery-container">
+
+    <h1>Explanation Report</h1>
+
+    <p class="page-description text-center">#ResultsNumber#</p> 
+    
+    <label for="example-text-input" class="col-2 col-form-label">Search terms:</label>
+
+    <div class="input-group">
+      <span class="input-group-btn">
+        <button class="btn btn-default" type="button" onclick="clearSearch();" tabindex="1" >Clear</button>
+      </span>
+      <input id="searchBox" type="text" class="form-control" onchange="filter();" tabindex="2" autofocus>
+    </div>
+
+    <div id="gallery" class="tz-gallery">
+
+        <div class="row">
+
+            #Terms#
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -14,7 +14,13 @@ show_next_solution:-
 	 atom_to_term(T,Term,_),writefact(Term),
 	 (D=0' ,!,get_next_fact; true),
 	 show_next_solution,nl,
-	 writeCauses
+	 findCauses,
+	 (
+	 	opt(report),!,
+	 	writeReport
+	 ;
+	 	writeCauses
+	 )
 	).
 show_next_solution.	
 
@@ -64,9 +70,9 @@ writefact(Term):-
 	  	true
 	).
 
-% writeCauses
-%	First find the causes of fired rules, and finally write them.
-writeCauses :-
+% findCauses
+%	Find the causes of fired rules.
+findCauses :-
 	% Facts first (rules without body)
 	repeat,
 	(
@@ -77,7 +83,7 @@ writeCauses :-
 		replaceValues(ArgValues, VarNames, [OriginalLabel], [LabelFired]),
 		append(_Args2, [ValueFired], ArgValues),
 
-		assert(cause(TermFired, LabelFired, ValueFired, RuleNumber, [])),
+		assert(cause(TermFired, LabelFired, ValueFired, RuleNumber, is_leaf)),
 		fail
 	;	
 		true
@@ -100,7 +106,11 @@ writeCauses :-
 		),
 		fail
 	;	true
-	),!,
+	),!.
+
+% writeCauses
+% Write ASCII trees for explanations.
+writeCauses :-
 	% Writting causes
 	(
 	  current_predicate(cause/5) ->
@@ -130,6 +140,190 @@ writeCauses :-
 	; 
 		true
 	).
+
+writeReport :-
+	(
+	  current_predicate(cause/5) ->
+	  	makeDirectory('report'),
+	  	write('Making graphs'),
+	  	makeGraphs,nl,
+	  	write('Making html report'),
+	  	makeReport,nl,
+	  	shell('sensible-browser report/report.html &')
+	; 
+		write('Report cant be written'),nl
+	).
+
+makeReport :-
+	% Copy resources
+	copy_directory('reportTemplate/resources', 'report/.resources'),
+
+	open('report/report.html', write, ReportFile),
+	
+	htmlReportTemplate(HtmlReportTemplate),
+	
+	
+	(
+		current_predicate(explainCount/1),
+		explainCount(ExplainCount),
+		concat_atom([ExplainCount, ' ocurrences explained.'], ExplainingResults)
+	;
+		ExplainingResults = 'All ocurrences explained.'
+	),
+	
+	replaceString(HtmlReportTemplate, '#ResultsNumber#', ExplainingResults, AuxHtmlReport),
+
+	repeat,
+	(
+		graphPath(Term, Value, Label, _RuleNumber ,JpgFileName),
+
+		htmlReportRowTemplate(HtmlRowTemplate),
+
+		replaceString(HtmlRowTemplate, '#ImagePath#', JpgFileName, AuxString),
+		(
+			Label = no_label ->
+			term_to_atom(Term, WTerm),
+			concat_atom([WTerm, ' = ', Value], Title)	
+		;
+			term_to_atom(Label, WLabel),
+			concat_atom([WLabel, ' = ', Value], Title)
+		),
+		
+		replaceString(AuxString, '#Term#', Title, Row),
+
+		assert(reportRow(Row)),
+		write('.'),flush_output(),
+		fail
+	;	true
+	),!,
+
+	(
+	current_predicate(reportRow/1) ->
+		findall(X, reportRow(X), RowList),
+		concat_atom(RowList, Rows),
+		replaceString(AuxHtmlReport, '#Terms#', Rows, ReadyHtml)
+	;
+		replaceString(AuxHtmlReport, '#Terms#', 'No results', ReadyHtml)
+	),
+	write(ReportFile, ReadyHtml),
+	close(ReportFile).
+
+makeGraphs :-
+	(
+	  current_predicate(justExplain/1) ->
+		repeat,
+		(
+			justExplain(Term),
+			cause(Term, Label, Value, RuleNumber, Causes),
+			
+			makeGraph(Term, Label, Value, RuleNumber, Causes),
+
+			incr(explainCount,1),
+			fail
+		;	true
+		),
+		explainCount(ExplainCount),
+		writelist([ExplainCount, ' ocurrences explained.']),nl,
+		!	
+	;
+		repeat,
+		(
+			cause(Term, Label, Value, RuleNumber, Causes),
+			makeGraph(Term, Label, Value, RuleNumber, Causes), 
+			fail
+		;	true
+	),!
+).
+
+makeGraph(Term, Label, Value, RuleNumber, Causes) :-
+	% Create and open file
+	term_to_atom(Term, WTerm),
+	concat_atom(['report/', WTerm] ,DirectoryName),
+	makeDirectory(DirectoryName),
+
+	concat_atom([DirectoryName, '/', RuleNumber, '.dot'], FileName),
+	open(FileName, write, FileStream),
+
+	% Writting dot file
+	write(FileStream, 'digraph {\n rankdir = "BT";\n node [style=filled, color=black];\n'),
+	buildEdges(FileStream, Term, Label, Value, Causes),
+	write(FileStream, '}'),
+	close(FileStream),
+
+	% Creating image
+	concat_atom([DirectoryName, '/', RuleNumber, '.jpg'], JpgFileName),
+	concat_atom(["dot -Tjpg '", FileName,"' > '", JpgFileName, "'"], Command),
+	shell(Command),
+
+	% Saving path
+	concat_atom([WTerm, '/', RuleNumber, '.jpg'], RelativeImagePath),
+	assert(graphPath(Term, Value, Label, RuleNumber, RelativeImagePath)),
+	write('.'),flush_output().
+
+buildEdges(FileStream, Term, Label, Value, [HCause | Tail]) :-
+	HCause =.. [cause|[CTerm, CLabel, CValue, _RuleNumber, CTermCauses]],
+
+	(
+		Label = no_label ->
+		term_to_atom(Term, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="lightgrey"];\n'], Color),
+		write(FileStream, Color),!
+	;
+		term_to_atom(Label, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="gold2"];\n'], Color),
+		write(FileStream, Color),!
+	),
+	(
+		CLabel = no_label ->
+			term_to_atom(CTerm, WCTerm),!	
+	;
+		term_to_atom(CLabel, WCTerm),!
+	),
+	
+	concat_atom(['"', WCTerm, '=', CValue, '" -> "', WTerm, '=', Value, '";\n'], GraphLine),
+	write(FileStream, GraphLine),
+	
+	buildEdges(FileStream, CTerm, CLabel, CValue, CTermCauses),
+	buildEdges(FileStream, Term, Label, Value, Tail).
+
+buildEdges(FileStream, Term, Label, Value, is_leaf) :-
+	(
+		Label = no_label ->
+		term_to_atom(Term, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="lightgrey"];\n'], Color),
+		write(FileStream, Color),!
+	;
+		term_to_atom(Label, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="gold2"];\n'], Color),
+		write(FileStream, Color),!
+	),
+	
+	concat_atom(['"', WTerm, '=', Value, '";\n'], GraphLine),
+	write(FileStream, GraphLine).
+
+buildEdges(FileStream, Term, Label, Value, []) :-
+	(
+		Label = no_label ->
+		term_to_atom(Term, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="lightgrey"];\n'], Color),
+		write(FileStream, Color),!
+	;
+		term_to_atom(Label, WTerm),
+		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="gold2"];\n'], Color),
+		write(FileStream, Color),!
+	),
+	
+	concat_atom(['"', WTerm, '=', Value, '";\n'], GraphLine),
+	write(FileStream, GraphLine).
+
+
+makeDirectory(Path) :-
+	exists_directory(Path).
+
+makeDirectory(Path) :-
+	\+ exists_directory(Path),
+	make_directory(Path).
+
 
 % Writes an ASCII tree explanation for a cause
 writeCauseTree(Term, Label, Value, Causes, Level) :- 
@@ -238,7 +432,12 @@ evaluateCausesLabels([HTerm|Tail], MoreCauses) :-
 	current_predicate(cause/5),
 	cause(HTerm, no_label, _Value, _RuleNumber, TermCauses),!,
 	evaluateCausesLabels(Tail, TailCauses),
-	append(TermCauses, TailCauses, MoreCauses).
+	(
+		TermCauses=is_leaf ->
+			MoreCauses = TailCauses
+	;
+		append(TermCauses, TailCauses, MoreCauses)
+	).
 
 evaluateCausesLabels([HTerm|Tail], [Cause|MoreCauses]) :-
 	current_predicate(cause/5),

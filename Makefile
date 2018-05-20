@@ -3,7 +3,7 @@ LEX=flex
 VER=`cat VERSION`
 CC= gcc
 PL=swipl
-SRCS=util.pl display.pl loadfile.pl translate.pl solutions.pl lppf.pl
+SRCS=util.pl display.pl loadfile.pl translate.pl solutions.pl htmlReportStyle.pl lppf.pl
 lppf : $(SRCS)
 	$(PL) -g main_c -t halt -q -o lppf -c lppf.pl
 
