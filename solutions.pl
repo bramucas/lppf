@@ -347,7 +347,7 @@ writeCauseTree(Term, Label, Value, Causes, Level) :-
 	% Node Term and value
 	(
 		opt(labels), Level>0 ->
-			writelist([' = ', Value])
+			true
 	;
 		% If it is a boolean value change the output format
 		(	
@@ -396,15 +396,17 @@ writeBirth(Level) :-
 %		- VarNames: List of variable names that you can find in the body.
 %		- Body
 %		- Causes (return)
-getCauses(ArgValues, VarNames, Body, Causes) :-
+getCauses(ArgValues, VarNames, Body, TrimmedCauses) :-
 	simplifyBody(Body, SimplifiedBody),
 	replaceValues(ArgValues, VarNames, SimplifiedBody, Result),
 	(
 	opt(labels) ->
-		evaluateCausesLabels(Result, Causes)
+		evaluateCausesLabels(Result, Causes0),
+		trimCausesLabels(Causes0, Causes)
 	;
 		evaluateCauses(Result, Causes)
-	).
+	),
+	sort(Causes, TrimmedCauses).
 
 % evaluateCauses(Body, Causes)
 % Find the causes that make true a given body with a given pair of Variable-Value. The lack of
@@ -468,6 +470,12 @@ replaceValues(_, _, [], []).
 %		- VarNames: List of variable names that you can find in the body.
 %		- VarList: List of variables that will be replaced.
 %		- Result (return): List of values.
+getVarValues(ArgValues, VarNames, [Var|T], [Value|Rest]) :-
+	Var = 'VARValue',!,
+	last(ArgValues, Value),
+	getVarValues(ArgValues, VarNames, T, Rest).	
+
+
 getVarValues(ArgValues, VarNames, [Var|T], [Var|Rest]) :-
 	\+ nth0(_Position, VarNames, Var),!,
 	getVarValues(ArgValues, VarNames, T, Rest).
@@ -515,3 +523,12 @@ functor_prefix(F,Pref,Rest):-
 
 commas_to_list((A,B), [A|B1]) :- !,commas_to_list(B,B1).
 commas_to_list(A,[A]).
+
+
+trimCausesLabels([cause(HTerm, Label, Value, RuleNumber, TermCauses)|Tail], [cause(HTerm, Label, Value, RuleNumber, TermCauses)|TrimmedCauses]) :-
+	findall(C, (member(C, Tail), C =..[cause|[_CTerm, CLabel, _CValue, _RuleNumber, CTermCauses]], Label = CLabel, TermCauses = CTermCauses), BranchesToTrim),
+	subtract(Tail, BranchesToTrim, TrimmedTail),
+	trimCausesLabels(TrimmedTail, TrimmedCauses).
+
+trimCausesLabels([],[]).
+	
