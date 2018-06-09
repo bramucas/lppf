@@ -83,7 +83,7 @@ findCauses :-
 		replaceValues(ArgValues, VarNames, [OriginalLabel], [LabelFired]),
 		append(_Args2, [ValueFired], ArgValues),
 
-		assert(cause(TermFired, LabelFired, ValueFired, RuleNumber, is_leaf)),
+		addExplanation(cause(TermFired, LabelFired, ValueFired, RuleNumber, is_leaf)),
 		fail
 	;	
 		true
@@ -102,7 +102,7 @@ findCauses :-
 			replaceValues(ArgValues, VarNames, [OriginalLabel], [LabelFired]),
 			append(_Args, [ValueFired], ArgValues),
 
-			assert(cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes))
+			addExplanation(cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes))
 		),
 		fail
 	;	true
@@ -532,3 +532,15 @@ trimCausesLabels([cause(HTerm, Label, Value, RuleNumber, TermCauses)|Tail], [cau
 
 trimCausesLabels([],[]).
 	
+
+
+addExplanation(Expl) :-
+	\+ current_predicate(cause/5),
+	assert(Expl).
+
+addExplanation(Expl) :-
+	\+ Expl,!,
+	assert(Expl).
+
+addExplanation(Expl) :-
+	Expl.
