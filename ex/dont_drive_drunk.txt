@@ -1,0 +1,8 @@
+d :: drive.
+k :: drunk.
+r :: resist.
+
+pun :: punish :- drive, drunk.
+pun :: punish :- resist.
+
+pri :: prision :- punish.
