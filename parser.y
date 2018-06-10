@@ -67,6 +67,7 @@ char  	*strval; /* For returning a string */
 %type <strval> vid
 %type <strval> num
 %type <strval> aggregate
+%type <strval> string
 
 %left IF
 %left OR
@@ -107,10 +108,12 @@ explain :
   ;
 
 rule :
-    head								{ruleline=yyline; printf("rule(fterm(no_label,[])/%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
-  | fterm LABEL head          {ruleline=yyline; printf("rule(%s/%d/%d,%s,[]).\n",$1,rulenum++,ruleline,$3);}
-  | head {ruleline=yyline;} IF body		{printf("rule(fterm(no_label,[])/%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
-  | fterm LABEL head {ruleline=yyline;} IF body {printf("rule(%s/%d/%d,%s,[%s]).\n",$1,rulenum++,ruleline,$3,$6);}
+    head								{ruleline=yyline; printf("rule(no_label/%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
+  | fterm LABEL head          {ruleline=yyline; printf("rule(label(%s)/%d/%d,%s,[]).\n",$1,rulenum++,ruleline,$3);}
+  | string LABEL head   {ruleline=yyline; printf("rule(text('%s')/%d/%d,%s,[]).\n",$1,rulenum++,ruleline,$3);}
+  | head {ruleline=yyline;} IF body		{printf("rule(no_label/%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
+  | fterm LABEL head {ruleline=yyline;} IF body {printf("rule(label(%s)/%d/%d,%s,[%s]).\n",$1,rulenum++,ruleline,$3,$6);}
+  | string LABEL head {ruleline=yyline;} IF body {printf("rule(text('%s')/%d/%d,%s,[%s]).\n",$1,rulenum++,ruleline,$3,$6);}
   | IF {ruleline=yyline;} body			{printf("rule(no_label/%d/%d,[],[%s]).\n",rulenum++,ruleline,$3);}
   ;
 
@@ -210,6 +213,10 @@ num : NUMBER 		{ $$=yylval.strval; } ;
 aggregate :
     SUM   {$$="sum";}
   ;
+
+string:
+  STRING {$$=yylval.strval;}
+
 
 /* End of grammar */
 %%
