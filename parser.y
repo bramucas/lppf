@@ -68,6 +68,7 @@ char  	*strval; /* For returning a string */
 %type <strval> num
 %type <strval> aggregate
 %type <strval> string
+%type <strval> label
 
 %left IF
 %left OR
@@ -109,13 +110,16 @@ explain :
 
 rule :
     head								{ruleline=yyline; printf("rule(no_label/%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
-  | fterm LABEL head          {ruleline=yyline; printf("rule(label(%s)/%d/%d,%s,[]).\n",$1,rulenum++,ruleline,$3);}
-  | string LABEL head   {ruleline=yyline; printf("rule(text('%s')/%d/%d,%s,[]).\n",$1,rulenum++,ruleline,$3);}
+  | label head          {ruleline=yyline; printf("rule(%s/%d/%d,%s,[]).\n",$1,rulenum++,ruleline,$2);}
   | head {ruleline=yyline;} IF body		{printf("rule(no_label/%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
-  | fterm LABEL head {ruleline=yyline;} IF body {printf("rule(label(%s)/%d/%d,%s,[%s]).\n",$1,rulenum++,ruleline,$3,$6);}
-  | string LABEL head {ruleline=yyline;} IF body {printf("rule(text('%s')/%d/%d,%s,[%s]).\n",$1,rulenum++,ruleline,$3,$6);}
+  | label head {ruleline=yyline;} IF body {printf("rule(%s/%d/%d,%s,[%s]).\n",$1,rulenum++,ruleline,$2,$5);}
   | IF {ruleline=yyline;} body			{printf("rule(no_label/%d/%d,[],[%s]).\n",rulenum++,ruleline,$3);}
   ;
+
+label:
+    fterm LABEL   {$$=strCat("label(",$1,")",NULL);}
+  | string LABEL  {$$=strCat("text('",$1,"')",NULL);}
+;
 
 atom :
     fterm		        {$$=strCat($1,"==fterm(true,[])",NULL);}
