@@ -355,59 +355,59 @@ psoft_risk(ascites_pretransplant):=3.
 
 %%%%%%%%%%%%%%%%%%%%%% PSOFT rules with constraints %%%%%%%%%%%%%%%%%%%%%%
 
-age60 :: 
+"age60 \t[%_Value]" :: 
   psoft(age_60,P):= psoft_risk(age_60) :- 
         age(P)>60.
 
-bmi6_35 :: 
+"bmi6_35 \t[%_Value]" :: 
   psoft(bmi6_35,P):= psoft_risk(bmi6_35) :- 
         bmi(P)>35.
 
-one_prev_trans :: 
+"one_prev_trans \t[%_Value]" :: 
   psoft(one_previous_transplant,P):= psoft_risk(one_previous_transplant) :- 
         p_trans(P)=1.
 
-two_prev_trans :: 
+"two_prev_trans \t[%_Value]" :: 
   psoft(two_previous_transpant,P):= psoft_risk(two_previous_transpant) :- 
         p_trans(P)>1.
 
-prev_abdom_surg :: 
+"prev_abdom_surg \t[%_Value]" :: 
   psoft(previous_abdominal_surgey,P):= psoft_risk(previous_abdominal_surgey) :- 
         ab_surgery(P).
 
-albumin :: 
+"albumin \t[%_Value]" ::
   psoft(albumin,P):= psoft_risk(albumin) :- 
         albumin_fl(P)<200.
 
-dialysis :: 
+"dialysis \t[%_Value]" :: 
   psoft(dialysis_prior_transplantation,P):= psoft_risk(dialysis_prior_transplantation) :- 
         dialysis(P).
 
-icu :: 
+"icu \t[%_Value]" :: 
   psoft(intensive_care_unit_pretransplant,P):= psoft_risk(intensive_care_unit_pretransplant) :- 
         icu(P).
 
-hospital :: 
+"hospital \t[%_Value]" :: 
   psoft(admitted_to_hospital_pretransplant,P):= psoft_risk(admitted_to_hospital_pretransplant) :- 
         hospital(P).
 
-meld_30 :: 
+"meld_30 \t[%_Value]" :: 
   psoft(meld_30,P):= psoft_risk(meld_30) :- 
         meld(P)>30.
 
-life_support_pretrans :: 
+"life_support_pretrans \t[%_Value]" :: 
   psoft(life_support_pretransplant,P):= psoft_risk(life_support_pretransplant) :- 
         l_sup(P).
 
-encheph :: 
+"encheph \t[%_Value]" :: 
   psoft(encephalopathy,P):= psoft_risk(encephalopathy) :- 
         enceph(P).
 
-portal_thromb :: 
+"portal_thromb \t[%_Value]" :: 
   psoft(portal_vein_thrombosis,P):= psoft_risk(portal_vein_thrombosis) :- 
       p_thromb(P).
 
-ascites_pretransplant :: 
+"ascites_pretransplant \t[%_Value]" :: 
   psoft(ascites_pretransplant,P):= psoft_risk(ascites_pretransplant) :- 
       ascites(P).
 
@@ -445,33 +445,33 @@ soft_risk(cold_ischemia_0_6h):= -3.
 
 %%%%%%%%%%%%%%%%%%%%%% SOFT rules with constraints %%%%%%%%%%%%%%%%%%%%%%
 
-psoft_rules ::
+"Reglas del psoft (total %_Value)" ::
   soft(psoft,P) := psoft_cal(P).
 
-soft_portal_bleed :: 
+"soft_portal_bleed \t[%_Value]" :: 
   soft(portal_bleed_48h_pretransplant,P) := soft_risk(portal_bleed_48h_pretransplant) :- 
       portal_bleed(P).
 
-donor_age_60 :: 
+"donor_age_60 \t[%_Value]" :: 
   soft(donor_age2_gt_60,P) := soft_risk(donor_age2_gt_60) :- 
       donor_age(P) > 60.
 
-donor_vascular_acc :: 
+"donor_vascular_acc \t[%_Value]" :: 
   soft(donor_cerebral_vascular_accident,P) := soft_risk(donor_cerebral_vascular_accident) :- 
       vascular_acc(P).
 
-donor_creatinine :: 
+"donor_creatinine \t[%_Value]" :: 
   soft(donor_creatinine_15,P) := soft_risk(donor_creatinine_15) :- 
       creatinine_fl(P) > 150.
 
 % No hay datos sobre national_allocation
 %soft(national_allocation,P) := soft_risk(national_allocation) :- sel_national_allocation(P).
 
-donor_age_10_20 :: 
+"donor_age_10_20 \t[%_Value]" :: 
   soft(donor_age2_10_20,P) := soft_risk(donor_age2_10_20) :- 
       donor_age(P) = Age, Age <= 10, Age >= 20.
 
-cold_ischemia_6 :: 
+"cold_ischemia_6 \t[%_Value]" :: 
   soft(cold_ischemia_0_6h,P) := soft_risk(cold_ischemia_0_6h) :- 
       cold_ischemia(P) = Time, Time <= 6*60.
 
@@ -482,14 +482,26 @@ soft(C,P) ^= 0 :- #exists{C, transplant(P) : #exists{R : soft_category(R) = C} }
 soft_sum(0,P):=0 :- transplant(P).
 soft_sum(R,P):= soft(soft_category(R),P) + soft_sum(R-1,P).
 
-s(P):: soft_cal(P) := soft_sum(8,P).
+"Reglas activadas:" ::
+    soft_cal(P) := soft_sum(8,P).
 
-soft_level(P) := l   :- soft_cal(P)<=5.
-soft_level(P) := lm  :- soft_cal(P)=X, 6<=X, X<=15.
-soft_level(P) := hm  :- soft_cal(P)=X, 16<=X, X<=35.
-soft_level(P) := h   :- soft_cal(P)=X, 36<=X, X<=40.
-soft_level(P) := f   :- soft_cal(P)=X, 40<X.
+
+
+"Patient %P = %X (%_Value)" ::
+    soft_level(P) := low   :- soft_cal(P)=X, X<=5.
+
+"Patient %P = %X (%_Value)" ::
+    soft_level(P) := low_moderate   :- soft_cal(P)=X, 6<=X, X<=15.
+
+"Patient %P = %X (%_Value)" ::
+    soft_level(P) := high_moderate  :- soft_cal(P)=X, 16<=X, X<=35.
+
+"Patient %P = %X (%_Value)" ::
+    soft_level(P) := high     :- soft_cal(P)=X, 36<=X, X<=40.
+
+"Patient %P = %X (%_Value)" ::
+    soft_level(P) := futile   :- soft_cal(P)=X, 40<X.
 
 
 %#explain soft_cal(P).
-#explain soft_level(P).
+#explain soft_level(P) .

@@ -77,10 +77,31 @@ findCauses :-
 	repeat,
 	(
 		fired(RuleNumber, ArgValues),
-		ruleInfo(RuleNumber, OriginalLabel, OriginalTerm, VarNames, []),
-		
-		replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),		
-		replaceValues(ArgValues, VarNames, [OriginalLabel], [LabelFired]),
+		ruleInfo(RuleNumber, Label, OriginalTerm, VarNames, []),
+
+		replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),
+
+		% Process Label
+		(
+			Label = no_label ->
+				LabelFired = no_label
+
+		;
+			Label =.. [LabelType|[OriginalLabel]],
+			(
+				LabelType = label ->
+					prepareLabel(OriginalLabel, PreparedLabel),
+					replaceValues(ArgValues, VarNames, [PreparedLabel], [LabelFired])
+			;
+				LabelType = text ->
+					getVarReferences(OriginalLabel, References),
+					maplist(name, VarNames, L),
+					maplist(string_codes, VarNamesStrings, L),
+					replaceAllReferences(ArgValues, VarNamesStrings, References, OriginalLabel, NaturalText),
+					LabelFired = NaturalText
+			)
+		),
+
 		append(_Args2, [ValueFired], ArgValues),
 
 		addExplanation(cause(TermFired, LabelFired, ValueFired, RuleNumber, is_leaf)),
@@ -92,14 +113,35 @@ findCauses :-
 	repeat,
 	(
 		fired(RuleNumber, ArgValues),
-		ruleInfo(RuleNumber, OriginalLabel, OriginalTerm, VarNames, Body),
+		ruleInfo(RuleNumber, Label, OriginalTerm, VarNames, Body),
 		(
 			Body = [] -> true
 		;	
 			getCauses(ArgValues, VarNames, Body, Causes),
 			
 			replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),
-			replaceValues(ArgValues, VarNames, [OriginalLabel], [LabelFired]),
+
+			% Process Label
+			(
+				Label = no_label ->
+					LabelFired = no_label
+
+			;
+				Label =.. [LabelType|[OriginalLabel]],
+				(
+					LabelType = label ->
+						prepareLabel(OriginalLabel, PreparedLabel),
+						replaceValues(ArgValues, VarNames, [PreparedLabel], [LabelFired])
+				;
+					LabelType = text ->
+						getVarReferences(OriginalLabel, References),
+						maplist(name, VarNames, L),
+						maplist(string_codes, VarNamesStrings, L),
+						replaceAllReferences(ArgValues, VarNamesStrings, References, OriginalLabel, NaturalText),
+						LabelFired = NaturalText
+				)
+			),
+
 			append(_Args, [ValueFired], ArgValues),
 
 			addExplanation(cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes))
@@ -471,7 +513,7 @@ replaceValues(_, _, [], []).
 %		- VarList: List of variables that will be replaced.
 %		- Result (return): List of values.
 getVarValues(ArgValues, VarNames, [Var|T], [Value|Rest]) :-
-	Var = 'VARValue',!,
+	Var = 'VAR_Value',!,
 	last(ArgValues, Value),
 	getVarValues(ArgValues, VarNames, T, Rest).	
 
@@ -536,11 +578,97 @@ trimCausesLabels([],[]).
 
 addExplanation(Expl) :-
 	\+ current_predicate(cause/5),
+	write(Expl),nl,
 	assert(Expl).
 
 addExplanation(Expl) :-
 	\+ Expl,!,
+	write(Expl),nl,
 	assert(Expl).
 
 addExplanation(Expl) :-
 	Expl.
+
+
+
+	% Prepare a label to be processed on solutions module.
+prepareLabel(Label, PreparedLabel) :-
+	Label =.. [_F|[LabelFname, LabelVars]],
+	orderedAuxVarNames(LabelVars, PreparedLabelVars),
+	PreparedLabel =.. [LabelFname|PreparedLabelVars].
+
+orderedAuxVarNames([v(X)|T], [Var|VarNames]) :-
+	concat_atom(['VAR',X], Var),
+	orderedAuxVarNames(T, VarNames).
+orderedAuxVarNames([],[]).
+
+
+% Natural explanation
+
+replaceAllReferences(_, [], _, NaturalExplanation, NaturalExplanation).
+replaceAllReferences([], _, _, NaturalExplanation, NaturalExplanation).
+replaceAllReferences(_, _, [], NaturalExplanation, NaturalExplanation).
+
+
+replaceAllReferences(ArgValues, VarNames, [HRef|Tail], Text, NaturalExplanation) :-
+	HRef = "_Value",!,
+	last(ArgValues, Value),
+	string_concat("%", HRef, Reference),
+	replaceString(Text, Reference, Value, NewText),!,
+	replaceAllReferences(ArgValues, VarNames, Tail, NewText, NaturalExplanation).
+
+replaceAllReferences(ArgValues, VarNames, [HRef|Tail], Text, NaturalExplanation) :-
+	string_concat("VAR", HRef, VarName),
+	nth0(I, VarNames, VarName),
+	nth0(I, ArgValues, Value),
+	string_concat("%", HRef, Reference),
+	replaceString(Text, Reference, Value, NewText),!,
+	replaceAllReferences(ArgValues, VarNames, Tail, NewText, NaturalExplanation).
+
+replaceAllReferences(ArgValues, VarNames, [HRef|Tail], Text, NaturalExplanation) :-
+	string_concat("VAR", HRef, VarName),
+	\+ nth0(_I, ArgValues, VarName),
+	replaceAllReferences(ArgValues, VarNames, Tail, Text, NaturalExplanation).	
+
+getVarReferences(Text, Vars) :-
+	string_chars(Text, Chars),
+	findall(Index, nth0(Index, Chars, '%'), Indexes),
+	auxGetVarReferences(Indexes, Chars, References),
+	sort_atoms_by_length(References, Sorted),
+	reverse(Sorted, Vars).
+
+auxGetVarReferences([HI|Tail], Chars, [Var|MoreVars]) :-
+	Index is HI +1,
+	varReference(Index, Index, Chars, Var),
+	auxGetVarReferences(Tail, Chars, MoreVars).
+
+auxGetVarReferences([], _, []).
+
+
+varReference(First, Index, Chars, Reference) :-
+	nth0(Index, Chars, Char),
+	char_code(Char, Code),
+	refCode(Code),!,
+	Next is Index+1,
+	varReference(First, Next, Chars, Reference).
+
+varReference(First, Index, Chars, Reference) :-
+	nth0(Index, Chars, Char),
+	char_code(Char, Code),
+	\+ refCode(Code),!,	% delimitador
+	Len is Index-First,
+	string_chars(String, Chars),
+	sub_string(String, First, Len, _, Reference).
+
+varReference(First, Index, Chars, Reference) :-
+	\+ nth0(Index, Chars, _Char),	% final de string
+	Len is Index-First,
+	string_chars(String, Chars),
+	sub_string(String, First, Len, _, Reference).
+
+refCode(241).	% ñ
+refCode(209).	% Ñ
+refCode(95).	% _
+refCode(C) :- C>47, C<58.	% 0-9
+refCode(C) :- C>96, C<122.	% a-z
+refCode(C) :- C>64, C<91.	% A-Z

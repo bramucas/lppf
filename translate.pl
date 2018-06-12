@@ -423,11 +423,10 @@ write_rule(R, Label/RuleNum/_LineNum) :-
 		write_holds(Fname, TrueArgs ,FiredHead),
 
 		% Saving rule info with the ruleNumber
-		prepareLabel(Label, PreparedLabel),
 		append(FiredVarsNoValue, [_Value2], All),
 		OriginalTerm =.. [Fname|TrueArgs],
 
-		assert(ruleInfo(RuleNum, PreparedLabel, OriginalTerm, FiredVarsNoValue, Body))
+		assert(ruleInfo(RuleNum, Label, OriginalTerm, FiredVarsNoValue, Body))
 	).
 
 % write_holds(Fname, FTrueArgs, FiredHead)
@@ -467,19 +466,20 @@ uniquevalue(F/N,R):-
 vartuple(0,[]):-!.
 vartuple(N,[V|Vs]):-newvar(V),M is N-1, vartuple(M,Vs).
 
-% Prepare a label to be processed on solutions module.
-prepareLabel(Label, PreparedLabel) :-
-	Label =.. [_F|[LabelFname, LabelVars]],
-	orderedAuxVarNames(LabelVars, PreparedLabelVars),
-	PreparedLabel =.. [LabelFname|PreparedLabelVars].
-
-orderedAuxVarNames([v(X)|T], [Var|VarNames]) :-
-	concat_atom(['VAR',X], Var),
-	orderedAuxVarNames(T, VarNames).
-orderedAuxVarNames([],[]).
-
 % body_variables(Body, Arguments)
 %	Return all 'holds predicates arguments' (not the value) for a given translated body.
+body_variables([HTerm|Tail], Arguments) :-
+	HTerm =.. [=|Args],
+
+	% Not compounds
+	findall(A, (member(A,Args), compound(A)), Compounds),
+	Compounds = [],!,
+	
+	findall(A, (member(A,Args), concat_atom(['VAR',_],A)), Vars),
+	body_variables(Tail, MoreArguments),
+	merge_set(Vars, MoreArguments, Arguments).
+
+
 body_variables([HTerm|Tail], Arguments) :-
 	HTerm =.. [Fname|_Args],
 	\+ concat_atom(['holds_',_F],Fname),
@@ -487,7 +487,7 @@ body_variables([HTerm|Tail], Arguments) :-
 
 body_variables([HTerm|Tail], Arguments) :-
 	HTerm =.. [Fname|ArgsAndValue],
-	concat_atom(['holds_',_F],Fname),
+	concat_atom(['holds_',_F],Fname),!,
 	append(Args, [_Value], ArgsAndValue),
 	body_variables(Tail, MoreArgs),
 	merge_set(Args, MoreArgs, Arguments).
