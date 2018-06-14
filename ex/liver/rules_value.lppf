@@ -1,0 +1,27 @@
+%%%%%%%%%%%%%%%%%%%%%% Rules of psoft %%%%%%%%%%%%%%%%%%%%%%
+
+psoft_risk(age_60):=4.
+psoft_risk(bmi6_35):=2.
+psoft_risk(one_previous_transplant):=9.
+psoft_risk(two_previous_transpant):=14.
+psoft_risk(previous_abdominal_surgey):=2.
+psoft_risk(albumin):=2.
+psoft_risk(dialysis_prior_transplantation):=3.
+psoft_risk(intensive_care_unit_pretransplant):=6.
+psoft_risk(admitted_to_hospital_pretransplant):=3.
+psoft_risk(meld_30):=4.
+psoft_risk(life_support_pretransplant):=9.
+psoft_risk(encephalopathy):=2.
+psoft_risk(portal_vein_thrombosis):=5.
+psoft_risk(ascites_pretransplant):=3.
+
+
+%%%%%%%%%%%%%%%%%%%%%%% Rules of soft %%%%%%%%%%%%%%%%%%%%%%%%
+
+soft_risk(portal_bleed_48h_pretransplant):= 6.
+soft_risk(donor_age2_gt_60):= 3.
+soft_risk(donor_cerebral_vascular_accident):= 2.
+soft_risk(donor_creatinine_15):= 2.
+soft_risk(national_allocation):= 2.
+soft_risk(donor_age2_10_20):= -2.
+soft_risk(cold_ischemia_0_6h):= -3.

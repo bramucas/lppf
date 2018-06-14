@@ -578,12 +578,10 @@ trimCausesLabels([],[]).
 
 addExplanation(Expl) :-
 	\+ current_predicate(cause/5),
-	write(Expl),nl,
 	assert(Expl).
 
 addExplanation(Expl) :-
 	\+ Expl,!,
-	write(Expl),nl,
 	assert(Expl).
 
 addExplanation(Expl) :-
