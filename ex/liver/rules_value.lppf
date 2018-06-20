@@ -1,4 +1,4 @@
-%%%%%%%%%%%%%%%%%%%%%% Rules of psoft %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%% Rules of psoft (p previous) %%%%%%%%%%%%%%%%%%%%%%
 
 psoft_risk(age_60):=4.
 psoft_risk(bmi6_35):=2.

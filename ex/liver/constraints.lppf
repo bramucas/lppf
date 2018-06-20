@@ -85,7 +85,7 @@ psoft(C,P) ^= 0 :- transplant(P), psoft_category(R)=C.
 
 "donor_age_10_20 \t[%_Value]" :: 
   soft(donor_age2_10_20,P) := soft_risk(donor_age2_10_20) :- 
-      donor_age(P) = Age, Age <= 10, Age >= 20.
+      donor_age(P) = Age, Age >= 10, Age <= 20.
 
 "cold_ischemia_6 \t[%_Value]" :: 
   soft(cold_ischemia_0_6h,P) := soft_risk(cold_ischemia_0_6h) :- 

@@ -44,21 +44,20 @@ soft_sum(R,P):= soft(soft_category(R),P) + soft_sum(R-1,P).
 
 
 
-"Trasplante %P = %X (%_Value)" ::
-    soft_level(P) := low   :- soft_cal(P)=X, X<=5.
+"el nivel de riesgo de %P es %_Value porque el soft vale %X" ::
+    soft_level(P) := bajo   :- soft_cal(P)=X, X<=5.
 
-"Trasplante %P = %X (%_Value)" ::
-    soft_level(P) := low_moderate   :- soft_cal(P)=X, 6<=X, X<=15.
+"el nivel de riesgo de %P es %_Value porque el soft vale %X" ::
+    soft_level(P) :=moderadamente_bajo   :- soft_cal(P)=X, 6<=X, X<=15.
 
-"Trasplante %P = %X (%_Value)" ::
-    soft_level(P) := high_moderate  :- soft_cal(P)=X, 16<=X, X<=35.
+"el nivel de riesgo de %P es %_Value porque el soft vale %X" ::
+    soft_level(P) := moderadamente_alto  :- soft_cal(P)=X, 16<=X, X<=35.
 
-"Trasplante %P = %X (%_Value)" ::
-    soft_level(P) := high     :- soft_cal(P)=X, 36<=X, X<=40.
+"el nivel de riesgo de %P es %_Value porque el soft vale %X" ::
+    soft_level(P) := alto     :- soft_cal(P)=X, 36<=X, X<=40.
 
-"Trasplante %P = %X (%_Value)" ::
+"el nivel de riesgo de %P es %_Value porque el soft vale %X" ::
     soft_level(P) := futile   :- soft_cal(P)=X, 40<X.
 
 
-%#explain soft_cal(P).
-#explain soft_level(P) .
+#explain soft_level(P) :- ~alive(P), soft_level(P)=moderadamente_alto.

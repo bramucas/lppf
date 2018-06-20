@@ -1,5 +1,6 @@
     var thumbnails = document.getElementById("gallery").getElementsByClassName("thumbnail");
     var searchBox  = document.getElementById("searchBox");
+    var resultsText = document.getElementById("results");
 
     function clearSearch()
     {
@@ -7,10 +8,12 @@
             thumbnails[i].style.display = "block";
         }
         searchBox.value = "";
+        resultsText.innerHTML = thumbnails.length + " ocurrences explained";
     }
 
     function filter(){
         var searchValue = searchBox.value;
+        var counter     = 0;
 
         if (searchValue == "")
         {
@@ -26,8 +29,10 @@
             {
                 if (thumbnails[i].id.includes(searchValue))
                 {
+                    counter++;
                     thumbnails[i].style.display="block";
                 }    
             }
+            resultsText.innerHTML = counter + " ocurrences explained";
         }
     }

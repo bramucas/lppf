@@ -19,3 +19,6 @@ lex.yy.c : scanner.l
 
 liver:
 	./lppf -l $(LIVER)
+
+report_liver:
+	./lppf -l -r $(LIVER)
