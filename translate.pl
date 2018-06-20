@@ -8,7 +8,9 @@ translate :-
   repeat,
     (show(F), write_show_clause(F),fail; true),!,
   repeat,
-    (explainRule(Head, Body), write_explain_rule(Head, Body),fail; true),!, 
+    (explainRule(Head, Body), write_explain_rule(Head, Body),fail; true),!,
+  repeat,
+    (labelRule(LabelNumber, Label, Head, Body), write_label_rule(LabelNumber, Label, Head, Body),fail; true),!, 
   repeat,
     ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
   repeat,
@@ -58,6 +60,42 @@ write_explain_rule(OHead, OBody) :-
     writelist([PreparedHead, ' :- ', PreparedBody2, '.\n']).
 
 
+write_label_rule(LabelNumber, Label, OHead, OBody) :-
+	t_rule(OHead, OBody, Rs),
+	member(R,Rs),
+	remove_quantifiers([],R,Rs1),
+	member(RR,Rs1),
+	
+	map_subterms(replacevars,[v/1,vaux/1],RR,Rule),
+	Rule=(Head :- B),
+    replace_not_eq(B,Body),
+
+    Head =.. [FiredName|ArgsAndValue],
+    concat_atom(['fired_',FName], FiredName),
+
+    % Parametros
+    append(AuxArgs, [_LastItem], ArgsAndValue),
+    append(AuxArgs, ['Value'], Args),
+    append(Args, [LabelNumber], AuxHeadArgs),
+
+    body_variables(Body, BodyVariables),
+
+    append(BodyVariables, AuxHeadArgs, HeadArgs),
+
+    % Preparing head
+    concat_atom(['label_',FName], HeadFname),
+    PreparedHead =.. [HeadFname|HeadArgs],
+
+    % Preparing body
+    concat_atom(['holds_',FName], BodyFname),
+    BodyF =.. [BodyFname|Args],
+    append(Body, [BodyF], PreparedBody),
+
+    binop(',',PreparedBody,PreparedBody2),
+    writelist([PreparedHead, ' :- ', PreparedBody2, '.\n']),
+
+    % Label info
+    assert(labelInfo(LabelNumber, AuxArgs, BodyVariables, Label)).
 
 %%% TERMS %%%%%%%%%%%%
 

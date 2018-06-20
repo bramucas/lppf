@@ -10,6 +10,8 @@ int ruleline=1;
 int rulenum=0;
 char *predicate;
 
+int labelnum=0;
+
 extern int yyrestart(FILE *);
 int yyerror (char *s)  /* Called by yyparse on error */
 {
@@ -35,6 +37,7 @@ char  	*strval; /* For returning a string */
 %token OR
 %token SHOW
 %token EXPLAIN
+%token LABELRULE
 
 %token LABEL
 %token DOTS
@@ -91,6 +94,7 @@ sentence :
             FUNCTION {predicate="fname";} fnames;
           | SHOW     {predicate="show";} fnames;
           | explain
+          | labelRule
 	  | rule
 	  ;
 
@@ -107,6 +111,11 @@ explain :
     EXPLAIN head IF body {printf("explainrule(%s,[%s]).\n", $2, $4);}
   | EXPLAIN head         {printf("explainrule(%s,[]).\n", $2);}
   ;
+
+labelRule :
+    LABELRULE label head          {printf("labelrule(%d, %s, %s, []).\n", labelnum++, $2, $3);}
+  | LABELRULE label head IF body  {printf("labelrule(%d, %s, %s, [%s]).\n", labelnum++, $2, $3, $5);}
+
 
 rule :
     head								{ruleline=yyline; printf("rule(no_label/%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}

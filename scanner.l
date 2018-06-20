@@ -11,7 +11,7 @@ extern int yyerror(char *);
 DIGIT    [0-9]
 PID      [a-z][a-zA-Z0-9_]*"'"
 ID       [a-z][a-zA-Z0-9_]*
-VID      [A-Z][a-zA-Z0-9_]*
+VID      _?[A-Z][a-zA-Z0-9_]*
 STRING   "\""[^\"]*"\""
 
 %%
@@ -32,6 +32,7 @@ or		{ return OR; }
 "#exists"	{ return EXISTS; }
 "#show"     { return SHOW; }
 "#explain"		{ return EXPLAIN; }
+"#label"		{ return LABELRULE; }
 
 ">="		{ return GEQ; }	
 "<="		{ return LEQ; }	
