@@ -228,7 +228,7 @@ makeReport :-
 			concat_atom([WTerm, ' = ', Value], Title)	
 		;
 			term_to_atom(Label, WLabel),
-			concat_atom([WLabel, ' = ', Value], Title)
+			concat_atom([WLabel], Title)
 		),
 		
 		replaceString(AuxString, '#Term#', Title, Row),
@@ -388,7 +388,7 @@ writeCauseTree(Term, Label, Value, Causes, Level) :-
 
 	% Node Term and value
 	(
-		opt(labels), Level>0 ->
+		opt(labels)->
 			true
 	;
 		% If it is a boolean value change the output format
@@ -578,12 +578,10 @@ trimCausesLabels([],[]).
 
 addExplanation(Expl) :-
 	\+ current_predicate(cause/5),
-	write(Expl),nl,
 	assert(Expl).
 
 addExplanation(Expl) :-
 	\+ Expl,!,
-	write(Expl),nl,
 	assert(Expl).
 
 addExplanation(Expl) :-
