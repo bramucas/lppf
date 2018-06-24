@@ -52,12 +52,12 @@ writefact(Term):-
 		% Label rules
 		Term =.. [F|ValuesAndLabelNumber],
 
+		% Fired Term
+		functor_prefix(F,label_,F2),
+
 		% getting LabelNumber
 		append(FiredValues, [LabelNumber], ValuesAndLabelNumber),
 		labelInfo(LabelNumber, ArgNames, BodyVariables, Label),
-		
-		% Fired Term
-		functor_prefix(F,label_,F2),
 
 		% Fired Term Values
 		append(Aux, [_TermValue], FiredValues),
