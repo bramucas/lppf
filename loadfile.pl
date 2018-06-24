@@ -45,6 +45,9 @@ read_terms:-
 	  ; Term=explainrule(Head,Body),!,
 	  	assertz(explainRule(Head,Body)) 
 
+	  ; Term=labelrule(LabelNumber,Label,Head,Body),!,
+	  	assertz(labelRule(LabelNumber,Label,Head,Body)) 
+
 	  ; debugln(['Not implemented:',Term])
 	  ),
 	  read_terms

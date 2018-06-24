@@ -1,4 +1,4 @@
-:- dynamic sol_fact/3, numsol/1, cause/3, explainCount/1.
+:- dynamic sol_fact/3, numsol/1, cause/3, explainCount/1, label/2.
 
 display_solutions(NSol):-
 	set_count(numsol,0),
@@ -35,7 +35,7 @@ writefact(Term):-
 	;	Term =.. [F|_], functor_prefix(F,nholds,_),!	% ignore auxiliary atoms
 	;	Term = -_X,!   									% ignore auxiliary atoms	  
 	; 
-	  	% Fired rules
+	  	% Fired rules 
 	  	Term =.. [F|Values],
 	    functor_prefix(F,fired_,F2),!,
 		atom_number(F2,RuleNumber),
@@ -48,6 +48,32 @@ writefact(Term):-
 	  	ExplainTerm =.. [F2|Values],
 
 	  	assert(justExplain(ExplainTerm))
+	;
+		% Label rules
+		Term =.. [F|ValuesAndLabelNumber],
+
+		% getting LabelNumber
+		append(FiredValues, [LabelNumber], ValuesAndLabelNumber),
+		labelInfo(LabelNumber, ArgNames, BodyVariables, Label),
+		
+		% Fired Term
+		functor_prefix(F,label_,F2),
+
+		% Fired Term Values
+		append(Aux, [_TermValue], FiredValues),
+		length(BodyVariables,N),
+		length(Prefix, N),
+		append(Prefix, FiredTermValues, Aux),
+
+
+		FiredTerm =.. [F2|FiredTermValues],
+
+		% Process Label
+		append(BodyVariables, ArgNames, Names),
+		processLabel(Label, FiredValues, Names, LabelFired),
+
+		assert(label(FiredTerm, LabelFired))
+
 	; 
 	  	% Holds rules
 	  	Term =.. [F|Args],
@@ -82,24 +108,16 @@ findCauses :-
 		replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),
 
 		% Process Label
+		processLabel(Label, ArgValues, VarNames, IndividualLabelFired),
 		(
-			Label = no_label ->
-				LabelFired = no_label
-
+			\+ label(TermFired, _),
+			IndividualLabelFired = no_label,
+			LabelFired = no_label 
 		;
-			Label =.. [LabelType|[OriginalLabel]],
-			(
-				LabelType = label ->
-					prepareLabel(OriginalLabel, PreparedLabel),
-					replaceValues(ArgValues, VarNames, [PreparedLabel], [LabelFired])
-			;
-				LabelType = text ->
-					getVarReferences(OriginalLabel, References),
-					maplist(name, VarNames, L),
-					maplist(string_codes, VarNamesStrings, L),
-					replaceAllReferences(ArgValues, VarNamesStrings, References, OriginalLabel, NaturalText),
-					LabelFired = NaturalText
-			)
+			\+ IndividualLabelFired = no_label,
+			LabelFired = IndividualLabelFired
+		;
+			label(TermFired, LabelFired)
 		),
 
 		append(_Args2, [ValueFired], ArgValues),
@@ -122,24 +140,16 @@ findCauses :-
 			replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),
 
 			% Process Label
+			processLabel(Label, ArgValues, VarNames, IndividualLabelFired),
 			(
-				Label = no_label ->
-					LabelFired = no_label
-
+				\+ label(TermFired, _),
+				IndividualLabelFired = no_label,
+				LabelFired = no_label 
 			;
-				Label =.. [LabelType|[OriginalLabel]],
-				(
-					LabelType = label ->
-						prepareLabel(OriginalLabel, PreparedLabel),
-						replaceValues(ArgValues, VarNames, [PreparedLabel], [LabelFired])
-				;
-					LabelType = text ->
-						getVarReferences(OriginalLabel, References),
-						maplist(name, VarNames, L),
-						maplist(string_codes, VarNamesStrings, L),
-						replaceAllReferences(ArgValues, VarNamesStrings, References, OriginalLabel, NaturalText),
-						LabelFired = NaturalText
-				)
+				\+ IndividualLabelFired = no_label,
+				LabelFired = IndividualLabelFired
+			;
+				label(TermFired, LabelFired)
 			),
 
 			append(_Args, [ValueFired], ArgValues),
@@ -149,6 +159,21 @@ findCauses :-
 		fail
 	;	true
 	),!.
+
+% processLabel(Label, Values, Names, LabelFired)
+processLabel(no_label, _, _, no_label).
+
+processLabel(label(OriginalLabel), Values, Names, LabelFired) :-
+	prepareLabel(OriginalLabel, PreparedLabel),
+	replaceValues(Values, Names, [PreparedLabel], [LabelFired]).
+
+processLabel(text(OriginalLabel), Values, Names, LabelFired) :-
+	getVarReferences(OriginalLabel, References),
+	maplist(name, Names, L),
+	maplist(string_codes, VarNamesStrings, L),
+	replaceAllReferences(Values, VarNamesStrings, References, OriginalLabel, NaturalText),
+	LabelFired = NaturalText.
+
 
 % writeCauses
 % Write ASCII trees for explanations.
@@ -388,7 +413,7 @@ writeCauseTree(Term, Label, Value, Causes, Level) :-
 
 	% Node Term and value
 	(
-		opt(labels)->
+		opt(labels), Level > 0 ->
 			true
 	;
 		% If it is a boolean value change the output format
