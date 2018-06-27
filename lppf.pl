@@ -25,6 +25,7 @@
 :- consult('translate.pl').
 :- consult('solutions.pl').
 :- consult('htmlReportStyle.pl').
+:- consult('explanations.pl').
 
 :- dynamic opt/1.	% Program options like, for instance, opt(debug)
 
