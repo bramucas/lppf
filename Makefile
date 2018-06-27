@@ -3,7 +3,7 @@ LEX=flex
 VER=`cat VERSION`
 CC= gcc
 PL=swipl
-SRCS=util.pl display.pl loadfile.pl translate.pl solutions.pl htmlReportStyle.pl lppf.pl
+SRCS=util.pl display.pl loadfile.pl translate.pl solutions.pl explanations.pl htmlReportStyle.pl lppf.pl
 LIVER= ex/liver/facts.lppf ex/liver/rules_value.lppf ex/liver/constraints.lppf ex/liver/liver_calc.lppf
 lppf : $(SRCS)
 	$(PL) -g main_c -t halt -q -o lppf -c lppf.pl
