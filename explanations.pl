@@ -1,3 +1,4 @@
+:- dynamic toExplain/1.
 %%%%%%%%%%%%% Causes search %%%%%%%%%%%%%%
 
 
@@ -307,7 +308,7 @@ writeCauses :-
 			repeat,
 			(
 				justExplain(Term),
-				cause(Term, Label, Value, _RuleNumber, Causes),
+				toExplain(cause(Term, Label, Value, _RuleNumber, Causes)),
 				writeCauseTree(Term, Label, Value, Causes, 0),nl,
 				incr(explainCount,1),
 				fail
@@ -319,7 +320,7 @@ writeCauses :-
 		;
 			repeat,
 			(
-				cause(Term, Label, Value, _RuleNumber2, Causes),
+				toExplain(cause(Term, Label, Value, _RuleNumber2, Causes)),
 				writeCauseTree(Term, Label, Value, Causes, 0),nl,
 				fail
 			;	true
@@ -476,7 +477,7 @@ makeGraphs :-
 		repeat,
 		(
 			justExplain(Term),
-			cause(Term, Label, Value, RuleNumber, Causes),
+			toExplain(cause(Term, Label, Value, RuleNumber, Causes)),
 			
 			makeGraph(Term, Label, Value, RuleNumber, Causes),
 
@@ -490,7 +491,7 @@ makeGraphs :-
 	;
 		repeat,
 		(
-			cause(Term, Label, Value, RuleNumber, Causes),
+			toExplain(cause(Term, Label, Value, RuleNumber, Causes)),
 			makeGraph(Term, Label, Value, RuleNumber, Causes), 
 			fail
 		;	true
@@ -585,4 +586,48 @@ makeDirectory(Path) :-
 makeDirectory(Path) :-
 	\+ exists_directory(Path),
 	make_directory(Path).
+
+
+
+%%%%%%%%%%%%% Equivalent explanations %%%%%%%%%%%%%
+
+skipEquivalentExplanations :-
+	\+ opt(labels),
+	current_predicate(cause/5),
+	repeat,
+	(
+		cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes),
+		Expl =.. [cause|[TermFired, LabelFired, ValueFired, RuleNumber, Causes]],
+		assert(toExplain(Expl)),
+		fail
+	;	true
+	),!.
+
+skipEquivalentExplanations :-
+	opt(labels),
+	current_predicate(cause/5),
+	repeat,
+	(
+		cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes),
+		Expl =.. [cause|[TermFired, LabelFired, ValueFired, RuleNumber, Causes]],
+		\+ existsEquivalent(Expl),
+		assert(toExplain(Expl)),
+		fail
+	;	true
+	),!.
+	
+% called only with opt(labels) active.
+existsEquivalent(cause(_, LabelFired, _, _, Causes1)) :-
+	toExplain(cause(_, LabelFired, _, _, Causes2)),
+	getLabelsFirstLevel(Causes1, Labels1),
+	getLabelsFirstLevel(Causes2, Labels2),
+	sort(Labels1, Sorted1),
+	sort(Labels2, Sorted2),
+	Sorted1 = Sorted2.
+
+
+getLabelsFirstLevel([cause(_, Label, _, _, _)|T], [Label|MoreLabels]) :-
+	getLabelsFirstLevel(T, MoreLabels).
+
+getLabelsFirstLevel([],[]).
 
