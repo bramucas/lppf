@@ -407,7 +407,10 @@ writeBirth(Level) :-
 writeReport :-
 	(
 	  current_predicate(cause/5) ->
-	  	makeDirectory('report'),
+	  	numsol(N),
+	  	concat_atom(['report',N], CompletePath),
+	  	makeDirectory(CompletePath),
+
 	  	write('Making graphs'),
 	  	makeGraphs,nl,
 	  	write('Making html report'),
@@ -508,7 +511,7 @@ makeGraph(Term, Label, Value, RuleNumber, Causes) :-
 	open(FileName, write, FileStream),
 
 	% Writting dot file
-	write(FileStream, 'digraph {\n rankdir = "BT";\n node [style=filled, color=black];\n'),
+	write(FileStream, 'digraph {\n rankdir = "TB";\n node [style=filled, color=black];\n'),
 	buildEdges(FileStream, Term, Label, Value, Causes),
 	write(FileStream, '}'),
 	close(FileStream),

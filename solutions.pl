@@ -13,7 +13,7 @@ show_next_solution:-
 	 writelist(['Answer:',N]),nl,
 	 atom_to_term(T,Term,_),writefact(Term),
 	 (D=0' ,!,get_next_fact; true),
-	 show_next_solution,nl,
+	 
 	 findCauses,
 	 skipEquivalentExplanations,
 	 (
@@ -21,7 +21,17 @@ show_next_solution:-
 	 	writeReport
 	 ;
 	 	writeCauses
-	 )
+	 ),
+	
+	retractall(explainCount(_C)),
+	retractall(fired(_RN1, _V1)),
+	retractall(justExplain(_ET)),
+	retractall(graphPath(_T, _V2, _L1, _RN2, _RIP)),
+	retractall(cause(_TF, _LF, _VF, _RN3, _L2)),
+	retractall(reportRow(_R)),	
+	retractall(toExplain(_Expl)),
+
+	 show_next_solution,nl
 	).
 show_next_solution.	
 
