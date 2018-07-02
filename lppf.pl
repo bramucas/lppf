@@ -89,6 +89,7 @@ option('-v',debug).
 option('-t',translation).
 option('--nohalt',nohalt).
 option('-l',labels).
+option('-m',minimal_explanations).
 option('-r',report).
 option('--report',report).
 

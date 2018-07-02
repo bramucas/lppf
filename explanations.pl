@@ -1,3 +1,4 @@
+:- dynamic toExplain/1.
 %%%%%%%%%%%%% Causes search %%%%%%%%%%%%%%
 
 
@@ -307,7 +308,7 @@ writeCauses :-
 			repeat,
 			(
 				justExplain(Term),
-				cause(Term, Label, Value, _RuleNumber, Causes),
+				toExplain(cause(Term, Label, Value, _RuleNumber, Causes)),
 				writeCauseTree(Term, Label, Value, Causes, 0),nl,
 				incr(explainCount,1),
 				fail
@@ -319,7 +320,7 @@ writeCauses :-
 		;
 			repeat,
 			(
-				cause(Term, Label, Value, _RuleNumber2, Causes),
+				toExplain(cause(Term, Label, Value, _RuleNumber2, Causes)),
 				writeCauseTree(Term, Label, Value, Causes, 0),nl,
 				fail
 			;	true
@@ -476,7 +477,7 @@ makeGraphs :-
 		repeat,
 		(
 			justExplain(Term),
-			cause(Term, Label, Value, RuleNumber, Causes),
+			toExplain(cause(Term, Label, Value, RuleNumber, Causes)),
 			
 			makeGraph(Term, Label, Value, RuleNumber, Causes),
 
@@ -490,7 +491,7 @@ makeGraphs :-
 	;
 		repeat,
 		(
-			cause(Term, Label, Value, RuleNumber, Causes),
+			toExplain(cause(Term, Label, Value, RuleNumber, Causes)),
 			makeGraph(Term, Label, Value, RuleNumber, Causes), 
 			fail
 		;	true
@@ -586,3 +587,80 @@ makeDirectory(Path) :-
 	\+ exists_directory(Path),
 	make_directory(Path).
 
+
+
+%%%%%%%%%%%%% Equivalent explanations %%%%%%%%%%%%%
+
+skipEquivalentExplanations :-
+	\+ opt(labels),!,
+	current_predicate(cause/5),
+	repeat,
+	(
+		cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes),
+		Expl =.. [cause|[TermFired, LabelFired, ValueFired, RuleNumber, Causes]],
+		assert(toExplain(Expl)),
+		fail
+	;	true
+	),!.
+
+skipEquivalentExplanations :-
+	opt(labels),
+	\+ opt(minimal_explanations),!,
+	current_predicate(cause/5),
+	repeat,
+	(
+		cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes),
+		Expl =.. [cause|[TermFired, LabelFired, ValueFired, RuleNumber, Causes]],
+		\+ existsEquivalent(Expl),
+		assert(toExplain(Expl)),
+		fail
+	;	true
+	),!.
+
+skipEquivalentExplanations :-
+	opt(labels),
+	opt(minimal_explanations),!,
+	current_predicate(cause/5),
+	repeat,
+	(
+		cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes),
+		Expl =.. [cause|[TermFired, LabelFired, ValueFired, RuleNumber, Causes]],
+		(
+			% Existe una explicación de la misma etiqueta
+			toExplain(cause(TFOld, LabelFired, VFOld, RNOld, CausesOld)),
+			depth(Causes, NewDepth),
+			depth(CausesOld, OldDepth),
+			NewDepth < OldDepth,
+			retract(toExplain(cause(TFOld, LabelFired, VFOld, RNOld, CausesOld))),
+			assert(toExplain(Expl))
+		;
+			\+ toExplain(cause(_, LabelFired, _, _, _)),
+			assert(toExplain(Expl))
+		),
+		fail
+	;	true
+	),!.
+	
+% called only with opt(labels) active.
+existsEquivalent(cause(_, LabelFired, _, _, Causes1)) :-
+	toExplain(cause(_, LabelFired, _, _, Causes2)),
+	getLabelTree(Causes1, Labels1),
+	getLabelTree(Causes2, Labels2),
+	sort(Labels1, Sorted1),
+	sort(Labels2, Sorted2),
+	Sorted1 = Sorted2.
+
+getLabelTree([cause(_, Label, _, _, Causes)|T], [[Label,CTree]|MoreLabels]) :-
+	getLabelTree(Causes, CTree),
+	getLabelTree(T, MoreLabels).
+
+getLabelTree(is_leaf, []).
+getLabelTree([],[]).
+
+depth(Causes, Depth) :-
+	findall(D, (member(X, Causes), X =.. [cause|[_TF, _LF, _VF, _RN, C]], depth(C, D)), Depths),
+	max_list(Depths, Aux),
+	Depth is Aux+1.
+
+depth([], 0).
+depth(is_leaf, 0).

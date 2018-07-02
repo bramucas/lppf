@@ -15,6 +15,7 @@ show_next_solution:-
 	 (D=0' ,!,get_next_fact; true),
 	 show_next_solution,nl,
 	 findCauses,
+	 skipEquivalentExplanations,
 	 (
 	 	opt(report),!,
 	 	writeReport
