@@ -592,7 +592,7 @@ makeDirectory(Path) :-
 %%%%%%%%%%%%% Equivalent explanations %%%%%%%%%%%%%
 
 skipEquivalentExplanations :-
-	\+ opt(labels),
+	\+ opt(labels),!,
 	current_predicate(cause/5),
 	repeat,
 	(
@@ -605,6 +605,7 @@ skipEquivalentExplanations :-
 
 skipEquivalentExplanations :-
 	opt(labels),
+	\+ opt(minimal_explanations),!,
 	current_predicate(cause/5),
 	repeat,
 	(
@@ -615,19 +616,51 @@ skipEquivalentExplanations :-
 		fail
 	;	true
 	),!.
+
+skipEquivalentExplanations :-
+	opt(labels),
+	opt(minimal_explanations),!,
+	current_predicate(cause/5),
+	repeat,
+	(
+		cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes),
+		Expl =.. [cause|[TermFired, LabelFired, ValueFired, RuleNumber, Causes]],
+		(
+			% Existe una explicación de la misma etiqueta
+			toExplain(cause(TFOld, LabelFired, VFOld, RNOld, CausesOld)),
+			depth(Causes, NewDepth),
+			depth(CausesOld, OldDepth),
+			NewDepth < OldDepth,
+			retract(toExplain(cause(TFOld, LabelFired, VFOld, RNOld, CausesOld))),
+			assert(toExplain(Expl))
+		;
+			\+ toExplain(cause(_, LabelFired, _, _, _)),
+			assert(toExplain(Expl))
+		),
+		fail
+	;	true
+	),!.
 	
 % called only with opt(labels) active.
 existsEquivalent(cause(_, LabelFired, _, _, Causes1)) :-
 	toExplain(cause(_, LabelFired, _, _, Causes2)),
-	getLabelsFirstLevel(Causes1, Labels1),
-	getLabelsFirstLevel(Causes2, Labels2),
+	getLabelTree(Causes1, Labels1),
+	getLabelTree(Causes2, Labels2),
 	sort(Labels1, Sorted1),
 	sort(Labels2, Sorted2),
 	Sorted1 = Sorted2.
 
+getLabelTree([cause(_, Label, _, _, Causes)|T], [[Label,CTree]|MoreLabels]) :-
+	getLabelTree(Causes, CTree),
+	getLabelTree(T, MoreLabels).
 
-getLabelsFirstLevel([cause(_, Label, _, _, _)|T], [Label|MoreLabels]) :-
-	getLabelsFirstLevel(T, MoreLabels).
+getLabelTree(is_leaf, []).
+getLabelTree([],[]).
 
-getLabelsFirstLevel([],[]).
+depth(Causes, Depth) :-
+	findall(D, (member(X, Causes), X =.. [cause|[_TF, _LF, _VF, _RN, C]], depth(C, D)), Depths),
+	max_list(Depths, Aux),
+	Depth is Aux+1.
 
+depth([], 0).
+depth(is_leaf, 0).
