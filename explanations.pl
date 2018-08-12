@@ -304,19 +304,27 @@ writeCauses :-
 	(
 	  current_predicate(cause/5) ->
 		(
-		  current_predicate(justExplain/1) ->
-			repeat,
-			(
-				justExplain(Term),
-				toExplain(cause(Term, Label, Value, _RuleNumber, Causes)),
-				writeCauseTree(Term, Label, Value, Causes, 0),nl,
-				incr(explainCount,1),
-				fail
-			;	true
-			),
-			explainCount(ExplainCount),
-			writelist([ExplainCount, ' ocurrences explained.']),nl,
-			!	
+		  current_predicate(explain/0) ->
+		  	(
+		  	  current_predicate(justExplain/1) ->
+		  	  (
+		  		repeat,
+				(
+			      justExplain(Term),
+				  toExplain(cause(Term, Label, Value, _RuleNumber, Causes)),
+				  writeCauseTree(Term, Label, Value, Causes, 0),nl,
+				  incr(explainCount,1),
+				  fail
+				; true
+				),
+
+				explainCount(ExplainCount),
+				writelist([ExplainCount, ' ocurrences explained.']),nl,
+				!
+		  	  	)
+		  	;
+		  	  nl,write('Wrong explain sentences'),nl,!
+			)	
 		;
 			repeat,
 			(
@@ -326,7 +334,7 @@ writeCauses :-
 			;	true
 			),!
 		)
-	; 
+	;
 		true
 	).
 
@@ -413,11 +421,17 @@ writeReport :-
 
 	  	write('Making graphs'),
 	  	makeGraphs,nl,
-	  	writelist(['Making html report',N]),
-	  	makeReport,nl,
 
-	  	concat_atom(['sensible-browser ', CompletePath, '/', CompletePath, '.html &'], Command),
-	  	shell(Command)
+	  	(
+	  		\+ current_predicate(graphPath/5),
+	  		nl, write('Wrong explain sentences'), nl
+	  	;
+		  	writelist(['Making html report',N]),
+		  	makeReport,nl,
+
+		  	concat_atom(['sensible-browser ', CompletePath, '/', CompletePath, '.html &'], Command),
+		  	shell(Command)
+	  	)
 	; 
 		write('Report cant be written'),nl
 	).
@@ -483,21 +497,28 @@ makeReport :-
 
 makeGraphs :-
 	(
-	  current_predicate(justExplain/1) ->
-		repeat,
+	  current_predicate(explain/0) ->
 		(
-			justExplain(Term),
-			toExplain(cause(Term, Label, Value, RuleNumber, Causes)),
-			
-			makeGraph(Term, Label, Value, RuleNumber, Causes),
+		  current_predicate(justExplain/1) ->
+		  (
+		  	repeat,
+			(
+				justExplain(Term),
+				toExplain(cause(Term, Label, Value, RuleNumber, Causes)),
+				
+				makeGraph(Term, Label, Value, RuleNumber, Causes),
 
-			incr(explainCount,1),
-			fail
-		;	true
-		),
-		explainCount(ExplainCount),
-		writelist([ExplainCount, ' ocurrences explained.']),nl,
-		!	
+				incr(explainCount,1),
+				fail
+			;	true
+			),
+			explainCount(ExplainCount),
+			writelist([ExplainCount, ' ocurrences explained.']),nl,
+			!	
+		  )
+		;
+			true
+		)	
 	;
 		repeat,
 		(

@@ -8,7 +8,7 @@ translate :-
   repeat,
     (show(F), write_show_clause(F),fail; true),!,
   repeat,
-    (explainRule(Head, Body), write_explain_rule(Head, Body),fail; true),!,
+    (explainRule(Head, Body), assert(explain), write_explain_rule(Head, Body),fail; true),!,
   repeat,
     (labelRule(LabelNumber, Label, Head, Body), write_label_rule(LabelNumber, Label, Head, Body),fail; true),!, 
   repeat,

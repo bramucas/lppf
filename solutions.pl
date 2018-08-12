@@ -75,6 +75,7 @@ writefact(Term):-
 	  	functor_prefix(F,explain_,F2),!,
 	  	ExplainTerm =.. [F2|Values],
 
+	  	assert(explain),
 	  	assert(justExplain(ExplainTerm))
 	;
 		% Label rules
