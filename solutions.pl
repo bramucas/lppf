@@ -4,7 +4,6 @@ display_solutions(NSol):-
 	set_count(numsol,0),
 	show_next_solution,numsol(NSol).
 	
-%%% lparse %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 show_next_solution:-
         gettoken([0' ,10],T,D),!,
 	(T='UNSATISFIABLE',!

@@ -413,18 +413,25 @@ writeReport :-
 
 	  	write('Making graphs'),
 	  	makeGraphs,nl,
-	  	write('Making html report'),
+	  	writelist(['Making html report',N]),
 	  	makeReport,nl,
-	  	shell('sensible-browser report/report.html &')
+
+	  	concat_atom(['sensible-browser ', CompletePath, '/', CompletePath, '.html &'], Command),
+	  	shell(Command)
 	; 
 		write('Report cant be written'),nl
 	).
 
 makeReport :-
-	% Copy resources
-	copy_directory('reportTemplate/resources', 'report/.resources'),
+	numsol(N),
+	concat_atom(['report',N], ReportName),
 
-	open('report/report.html', write, ReportFile),
+	% Copy resources
+	concat_atom([ReportName,'/.resources'], ResDirectory),
+	copy_directory('reportTemplate/resources', ResDirectory),
+
+	concat_atom([ReportName,'/',ReportName,'.html'], ReportFileName),
+	open(ReportFileName, write, ReportFile),
 	
 	htmlReportTemplate(HtmlReportTemplate),
 	
@@ -502,9 +509,11 @@ makeGraphs :-
 ).
 
 makeGraph(Term, Label, Value, RuleNumber, Causes) :-
+	numsol(N),
+
 	% Create and open file
 	term_to_atom(Term, WTerm),
-	concat_atom(['report/', WTerm] ,DirectoryName),
+	concat_atom(['report',N,'/', WTerm] ,DirectoryName),
 	makeDirectory(DirectoryName),
 
 	concat_atom([DirectoryName, '/', RuleNumber, '.dot'], FileName),
