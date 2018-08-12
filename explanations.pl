@@ -215,9 +215,17 @@ prepareLabel(Label, PreparedLabel) :-
 	orderedAuxVarNames(LabelVars, PreparedLabelVars),
 	PreparedLabel =.. [LabelFname|PreparedLabelVars].
 
+% Variables
 orderedAuxVarNames([v(X)|T], [Var|VarNames]) :-
-	concat_atom(['VAR',X], Var),
+	concat_atom(['VAR',X], Var),!,
 	orderedAuxVarNames(T, VarNames).
+
+% Constants
+orderedAuxVarNames([X|T], [Var|VarNames]) :-
+	X =.. [fterm|[Var,_]],
+	orderedAuxVarNames(T, VarNames).
+
+% Base case
 orderedAuxVarNames([],[]).
 
 
