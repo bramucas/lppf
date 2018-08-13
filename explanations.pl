@@ -348,7 +348,47 @@ writeCauses :-
 
 
 % Writes an ASCII tree explanation for a cause
+writeCauseTree(Term, no_label, Value, Causes, Level) :-
+	!,
+	% Root marker
+	(
+	  Level = 0 ->
+		write('*')
+	;
+		true
+	),
+
+	% Node Term and value
+	% If it is a boolean value change the output format
+	(	
+	  Value = true  -> 
+		write(Term)
+	; Value = false -> 
+		writelist(['~',Term])
+	;	
+		writelist([Term,' = ',Value])
+	),nl,
+	
+	% Causes
+	(
+	  Causes = [] ->
+		!,true
+	;
+		repeat,
+		(
+			member(C, Causes),
+			C =.. [cause|[CTerm, CLabel, CValue, _RuleNumber, CTermCauses]],
+			writeBranch(Level),
+			NextLevel is Level+1,
+			writeCauseTree(CTerm, CLabel, CValue, CTermCauses,NextLevel),
+			fail
+		;	
+			true
+		),!
+	).	
+
 writeCauseTree(Term, Label, Value, Causes, Level) :- 
+	!,
 	% Root marker
 	(
 	  Level = 0 ->
@@ -358,17 +398,11 @@ writeCauseTree(Term, Label, Value, Causes, Level) :-
 	),
 
 	% Label
-	(
-	  Label = no_label ->
-		true
-	;
-		writelist([' \033[1;33m',Label,'\033[0m '])
-
-	),
+	writelist([' \033[1;33m',Label,'\033[0m ']),
 
 	% Node Term and value
 	(
-		opt(labels), Level > 0 ->
+		opt(labels) ->
 			true
 	;
 		% If it is a boolean value change the output format
@@ -683,6 +717,10 @@ skipEquivalentExplanations :-
 	),!.
 	
 % called only with opt(labels) active.
+existsEquivalent(cause(_, no_label, _, _, _)) :-
+	!,
+	fail.
+
 existsEquivalent(cause(_, LabelFired, _, _, Causes1)) :-
 	toExplain(cause(_, LabelFired, _, _, Causes2)),
 	getLabelTree(Causes1, Labels1),
