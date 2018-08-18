@@ -43,6 +43,8 @@ soft_sum(R,P):= soft(soft_category(R),P) + soft_sum(R-1,P).
     soft_cal(P) := soft_sum(8,P).
 
 
+%%%%%%%%%%%%%%%%%%%%%% Ranges %%%%%%%%%%%%%%%%%%%%%%
+
 
 "el nivel de riesgo de %P es %_Value porque el soft vale %X" ::
     soft_level(P) := bajo   :- soft_cal(P)=X, X<=5.

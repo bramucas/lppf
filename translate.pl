@@ -418,6 +418,19 @@ write_rule(R) :-
 %	Writes the fired and holds rule for an input rule.
 %		- Rule: The translation of the original rule.
 %		- Code: format = Label/RuleNumber/LineNumber.
+
+% For restrictions
+write_rule(R, _Label/_RuleNum/_LineNum) :-
+	map_subterms(replacevars,[v/1,vaux/1],R,Rule),
+	Rule = (Head :- B),
+    replace_not_eq(B, Body),
+	
+	Head = [],!,
+	write(' :- '),
+	binop(',', Body, PreparedBody),
+	write(PreparedBody),
+	write('.'),nl.
+
 write_rule(R, Label/RuleNum/_LineNum) :-
 	map_subterms(replacevars,[v/1,vaux/1],R,Rule),
 	Rule = (Head :- B),
