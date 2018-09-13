@@ -22,11 +22,11 @@ loadfiles([Fname|Fs]):-
 	get_implicit_fnames.
 
 preparse_files([],_):-!.
-preparse_files([F|Fs],TmpFile):-
-	(opt(quiet),!; writelist(['loading file ',F,'...']),nl),
-	concatall(['./getterms < ',F,' >> ',TmpFile],Command),
-	shell(Command),
-	preparse_files(Fs,TmpFile).
+preparse_files(FilesList, TmpFile):-
+	atomic_list_concat(FilesList, ' ', FilesNames),
+	(opt(quiet),!; writelist(['loading files ',FilesNames,'...']),nl),
+	concatall(['cat ', FilesNames,' | ./getterms  >> ',TmpFile],Command),
+	shell(Command).
 
 read_terms:-
 	read(Term),
