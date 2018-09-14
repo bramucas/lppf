@@ -12,7 +12,7 @@ show_next_solution:-
 	 writelist(['Answer:',N]),nl,
 	 atom_to_term(T,Term,_),writefact(Term),
 	 (D=0' ,!,get_next_fact; true),
-	 
+	 nl,
 	 findCauses,
 	 skipEquivalentExplanations,
 	 (
@@ -29,8 +29,9 @@ show_next_solution:-
 	retractall(cause(_TF, _LF, _VF, _RN3, _L2)),
 	retractall(reportRow(_R)),	
 	retractall(toExplain(_Expl)),
+	retractall(label(_FT, _LF2)),
 
-	 show_next_solution,nl
+	 show_next_solution,nl,nl
 	).
 show_next_solution.	
 
