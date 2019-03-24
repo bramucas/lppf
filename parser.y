@@ -10,6 +10,8 @@ int ruleline=1;
 int rulenum=0;
 char *predicate;
 
+int labelnum=0;
+
 extern int yyrestart(FILE *);
 int yyerror (char *s)  /* Called by yyparse on error */
 {
@@ -25,17 +27,22 @@ char  	*strval; /* For returning a string */
 
 
 %token ABS
+%token SUM
 %token EXISTS
-%token FORSOME
 %token FUNCTION
+%token CHOOSE
 %token IF
 %token IN
 %token NOT
 %token OR
 %token SHOW
+%token EXPLAIN
+%token LABELRULE
 
+%token LABEL
 %token DOTS
 %token ASSIGN
+%token DEFVALUE
 %token ARROW
 %token GEQ
 %token LEQ
@@ -48,8 +55,7 @@ char  	*strval; /* For returning a string */
 
 
 %type <strval> fname
-%type <strval> atom
-%type <strval> predatom
+%type <strval> atom 
 %type <strval> literal
 %type <strval> body
 %type <strval> head
@@ -58,10 +64,14 @@ char  	*strval; /* For returning a string */
 %type <strval> fterm
 %type <strval> aterm
 %type <strval> termlist
+%type <strval> item
+%type <strval> itemlist
 %type <strval> id
-%type <strval> vidlist
 %type <strval> vid
 %type <strval> num
+%type <strval> aggregate
+%type <strval> string
+%type <strval> label
 
 %left IF
 %left OR
@@ -70,6 +80,7 @@ char  	*strval; /* For returning a string */
 %left '-' '+'
 %left '*' '/' '\\'
 %left UMINUS     /* unary minus */
+%left '~'
 
 /* Grammar follows */
 
@@ -82,11 +93,13 @@ sentences : sentence '.' | sentences sentence '.';
 sentence : 
             FUNCTION {predicate="fname";} fnames;
           | SHOW     {predicate="show";} fnames;
+          | explain
+          | labelRule
 	  | rule
 	  ;
 
 fnames :
-      fname		{printf("%s(%s).\n",predicate,$1); }
+      fname		{printf("%s(%s).\n",predicate,$1);}
     | fnames ',' fname	{printf("%s(%s).\n",predicate,$3); }
   ;  
 
@@ -94,34 +107,57 @@ fname :
 	id			{ $$=strCat($1,"/0",NULL); }
   | id '/' num  { $$=strCat($1,"/",$3,NULL); }
   
-rule :
-    head								{ruleline=yyline; printf("rule(%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
-  | head {ruleline=yyline} IF body		{printf("rule(%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
-  | IF {ruleline=yyline} body			{printf("rule(%d/%d,[],[%s]).\n",rulenum++,ruleline,$3);}
+explain :
+    EXPLAIN head IF body {printf("explainrule(%s,[%s]).\n", $2, $4);}
+  | EXPLAIN head         {printf("explainrule(%s,[]).\n", $2);}
   ;
 
+labelRule :
+    LABELRULE label head          {printf("labelrule(%d, %s, %s, []).\n", labelnum++, $2, $3);}
+  | LABELRULE label head IF body  {printf("labelrule(%d, %s, %s, [%s]).\n", labelnum++, $2, $3, $5);}
+
+
+rule :
+    head								{ruleline=yyline; printf("rule(no_label/%d/%d,%s,[]).\n",rulenum++,ruleline,$1);}
+  | label head          {ruleline=yyline; printf("rule(%s/%d/%d,%s,[]).\n",$1,rulenum++,ruleline,$2);}
+  | head {ruleline=yyline;} IF body		{printf("rule(no_label/%d/%d,%s,[%s]).\n",rulenum++,ruleline,$1,$4);}
+  | label head {ruleline=yyline;} IF body {printf("rule(%s/%d/%d,%s,[%s]).\n",$1,rulenum++,ruleline,$2,$5);}
+  | IF {ruleline=yyline;} body			{printf("rule(no_label/%d/%d,[],[%s]).\n",rulenum++,ruleline,$3);}
+  ;
+
+label:
+    fterm LABEL   {$$=strCat("label(",$1,")",NULL);}
+  | string LABEL  {$$=strCat("text('",$1,"')",NULL);}
+;
+
 atom :
-    predatom			{$$=$1;}
+    fterm		        {$$=strCat($1,"==fterm(true,[])",NULL);}
+  | '~' fterm                   {$$=strCat($2,"==fterm(false,[])",NULL);}
   | term '=' term		{$$=strCat($1,"=",$3,NULL);}
   | term NEQ term		{$$=strCat($1,"=\\=",$3,NULL);}
   | term '>' term		{$$=strCat($1,">",$3,NULL);}
   | term '<' term		{$$=strCat($1,"<",$3,NULL);}
   | term GEQ term		{$$=strCat($1,">=",$3,NULL);}
   | term LEQ term		{$$=strCat($3,">=",$1,NULL);}
-  | EXISTS term			{$$=strCat($2,"=",$2,NULL);}
-  | FORSOME vidlist '(' body ')'		{$$=strCat("forsome([",$2,"],[",$4,"])",NULL); }
+  | EXISTS '{' item '}' {$$=strCat("agg(exists,[",$3,"])",NULL);}
   ;
-  
-predatom :
-    id					{$$=$1;}
-  | id '(' termlist ')'	{$$=strCat($1,"(",$3,")",NULL);}
-  ;
-  
+    
 literal :
-    atom				{$$=$1;}
-  | NOT atom			        {$$=strCat("not (",$2,")",NULL);}
-  | NOT NOT atom	  	        {$$=strCat("not not  (",$3,")",NULL);}
+    atom				  {$$=$1;}
+  | NOT atom			{$$=strCat("not (",$2,")",NULL);}
+  | NOT NOT atom	{$$=strCat("not not  (",$3,")",NULL);}
   ;
+
+itemlist:
+    item              {$$=$1;}
+  | itemlist ';' item {$$=strCat($1,",",$3,NULL);}
+  ;
+
+item:
+    termlist ':' body {$$=strCat("[",$1,"]:[",$3,"]",NULL);}
+  | termlist          {$$=strCat("[",$1,"]:[]",NULL);}
+  ; 
+
 
 body :
     literal				{$$=$1;}
@@ -129,15 +165,17 @@ body :
   ;  
 
 head :
-    predatom			{$$=strCat("predic(",$1,")",NULL);}
+    fterm         {{$$=strCat("assign(",$1,", fterm(true,[]))",NULL);}}
+  | '~' fterm         {{$$=strCat("assign(",$2,", fterm(false,[]))",NULL);}}
   | fterm ASSIGN term	{$$=strCat("assign(",$1,",",$3,")",NULL);}
-  | fterm IN set		{$$=strCat("choice(",$1,",",$3,")",NULL);}
+  | fterm DEFVALUE term {$$=strCat("def_assign(",$1,",",$3,")",NULL);}
+  | fterm ASSIGN CHOOSE set		{$$=strCat("choice(",$1,",",$4,")",NULL);}
   ;
 
 set :
 	'{' '}'					{$$=strCat("set([])",NULL);}
   | '{' termlist '}'		{$$=strCat("set([",$2,"])",NULL);}
-  | '{' vid '|' body '}'	{$$=strCat("set(",$2,",[",$4,"])",NULL);}
+  | '{' vid ':' body '}'	{$$=strCat("set(",$2,",[",$4,"])",NULL);}
 /*  
   | '{' fterm  '|' body '}'	{$$=strCat("set(",$2,",[",$4,"])",NULL);}
   | '{' aterm  '|' body '}'	{$$=strCat("set(",$2,",[",$4,"])",NULL);}
@@ -147,7 +185,8 @@ set :
   ;
 
 term :
-	vid					{$$=$1;}
+    aggregate '{' itemlist '}' {$$=strCat("agg(",$1,",[",$3,"])", NULL);}
+  | vid					{$$=$1;}
   | num					{$$=$1;}
   | fterm				{$$=$1;}
   | aterm				{$$=$1;}
@@ -168,6 +207,7 @@ aterm :
   | ABS '(' term ')'	{$$=strCat("abs(",$3,")",NULL);}
   | '|' term '|'		{$$=strCat("abs(",$2,")",NULL);}
   | '-' term  %prec UMINUS  {$$=strCat("(0-",$2,")",NULL);}
+  | '~' term        {$$=strCat("neg(",$2,")",NULL);}
   ;
   
 termlist :
@@ -179,14 +219,17 @@ id :
     ID 		{ $$=yylval.strval; }
   ;
 
-vidlist :
-	  vid			    {$$=$1;}
-	| vidlist ',' vid	{$$=strCat($1,",",$3,NULL);}
-	;
-
 vid : VID 		{ $$=strCat("v('",yylval.strval,"')",NULL); } ;
 
 num : NUMBER 		{ $$=yylval.strval; } ;
+
+aggregate :
+    SUM   {$$="sum";}
+  ;
+
+string:
+  STRING {$$=yylval.strval;}
+
 
 /* End of grammar */
 %%

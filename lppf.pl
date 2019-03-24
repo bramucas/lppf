@@ -16,7 +16,7 @@
 
 %----- general dynamic predicates ----------------------------------------------
    
-:- dynamic rule/3, fname/1, show/1.
+:- dynamic rule/3, fname/1, show/1, explainRule/2, labelRule/4.
 
 %----- other "modules" --------------------------------------------------------
 :- consult('util.pl').
@@ -24,6 +24,8 @@
 :- consult('loadfile.pl').
 :- consult('translate.pl').
 :- consult('solutions.pl').
+:- consult('htmlReportStyle.pl').
+:- consult('explanations.pl').
 
 :- dynamic opt/1.	% Program options like, for instance, opt(debug)
 
@@ -46,6 +48,8 @@ main([]):- !,
   write('  -o <filename>  output file.'),nl,
   write('  -q             supresses information header and messages.'),nl,
   write('  -t             just print the translation of functions into predicates.'),nl,
+  write('  -l             just print causes of labeled rules.'),nl,
+  write('  -r, --report   builds an html report with graphs.'),nl,
   (opt(nohalt),!; halt(0)).
 
 main(Args):-
@@ -84,6 +88,10 @@ option('-q',quiet).
 option('-v',debug).
 option('-t',translation).
 option('--nohalt',nohalt).
+option('-l',labels).
+option('-m',minimal_explanations).
+option('-r',report).
+option('--report',report).
 
 header :-
   write(' Logic Programs with Partial Functions 2.0'),nl,

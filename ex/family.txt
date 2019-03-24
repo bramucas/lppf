@@ -1,0 +1,17 @@
+
+father(cain):=adam.
+father(abel):=adam.
+mother(cain):=eve.
+mother(abel):=eve.
+
+person(father(X)).
+person(mother(X)).
+person(X):- #exists{father(X)}.
+person(X):- #exists{mother(X)}.
+male(father(X)).
+female(mother(X)).
+
+orphan(X) :- person(X), not #exists{father(X)}, not #exists{mother(X)}.
+
+
+

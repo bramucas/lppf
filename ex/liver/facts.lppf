@@ -1,0 +1,392 @@
+
+transplant(686).
+
+age(686):=59.  bmi(686):=21.  p_trans(686):=0.  ~ab_surgery(686).  albumin_fl(686):=400.  ~dialysis(686).  ~icu(686).  ~hospital(686).  meld(686):=7.   ~l_sup(686).  ~enceph(686).  ~p_thromb(686).  ~ascites(686).   alive(686). ~portal_bleed(686).  donor_age(686):=63.  ~vascular_acc(686).  creatinine_fl(686):=120.  cold_ischemia(686):=340.  utility(686):=96.
+
+
+transplant(687).
+
+age(687):=61.  bmi(687):=31.  p_trans(687):=0.  ~ab_surgery(687).  albumin_fl(687):=320.  ~dialysis(687).  ~icu(687).  ~hospital(687).  meld(687):=20.  ~l_sup(687).  ~enceph(687).  ~p_thromb(687).   ascites(687).   alive(687). ~portal_bleed(687).  donor_age(687):=50.  ~vascular_acc(687).  creatinine_fl(687):=459.  cold_ischemia(687):=385.  utility(687):=17.
+
+
+transplant(688).
+
+age(688):=45.  bmi(688):=25.  p_trans(688):=0.  ~ab_surgery(688).  albumin_fl(688):=220.  ~dialysis(688).  ~icu(688).   hospital(688).  meld(688):=33.  ~l_sup(688).   enceph(688).  ~p_thromb(688).   ascites(688).   alive(688). ~portal_bleed(688).  donor_age(688):=72.   vascular_acc(688).  creatinine_fl(688):=90.   cold_ischemia(688):=390.  utility(688):=95.
+
+
+transplant(689).
+
+age(689):=53.  bmi(689):=27.  p_trans(689):=0.  ~ab_surgery(689).  albumin_fl(689):=240.  ~dialysis(689).  ~icu(689).  ~hospital(689).  meld(689):=13.  ~l_sup(689).  ~enceph(689).  ~p_thromb(689).  ~ascites(689).   alive(689). ~portal_bleed(689).  donor_age(689):=77.   vascular_acc(689).  creatinine_fl(689):=70.   cold_ischemia(689):=355.  utility(689):=95.
+
+
+transplant(690).
+
+age(690):=44.  bmi(690):=24.  p_trans(690):=0.  ~ab_surgery(690).  albumin_fl(690):=380.   dialysis(690).  ~icu(690).  ~hospital(690).  meld(690):=22.  ~l_sup(690).  ~enceph(690).  ~p_thromb(690).  ~ascites(690).   alive(690). ~portal_bleed(690).  donor_age(690):=53.   vascular_acc(690).  creatinine_fl(690):=150.  cold_ischemia(690):=315.  utility(690):=95.
+
+
+transplant(691).
+
+age(691):=41.  bmi(691):=33.  p_trans(691):=0.  ~ab_surgery(691).  albumin_fl(691):=280.  ~dialysis(691).  ~icu(691).  ~hospital(691).  meld(691):=18.  ~l_sup(691).   enceph(691).  ~p_thromb(691).   ascites(691).   alive(691). ~portal_bleed(691).  donor_age(691):=66.   vascular_acc(691).  creatinine_fl(691):=70.   cold_ischemia(691):=327.  utility(691):=95.
+
+
+transplant(692).
+
+age(692):=55.  bmi(692):=23.  p_trans(692):=0.   ab_surgery(692).  albumin_fl(692):=350.   dialysis(692).  ~icu(692).  ~hospital(692).  meld(692):=30.  ~l_sup(692).  ~enceph(692).  ~p_thromb(692).   ascites(692).  ~alive(692). ~portal_bleed(692).  donor_age(692):=64.   vascular_acc(692).  creatinine_fl(692):=70.   cold_ischemia(692):=245.  utility(692):=0.
+
+
+transplant(693).
+
+age(693):=45.  bmi(693):=23.  p_trans(693):=0.  ~ab_surgery(693).  albumin_fl(693):=310.  ~dialysis(693).  ~icu(693).   hospital(693).  meld(693):=13.  ~l_sup(693).   enceph(693).  ~p_thromb(693).  ~ascites(693).   alive(693). ~portal_bleed(693).  donor_age(693):=35.  ~vascular_acc(693).  creatinine_fl(693):=70.   cold_ischemia(693):=382.  utility(693):=94.
+
+
+transplant(694).
+
+age(694):=61.  bmi(694):=27.  p_trans(694):=0.  ~ab_surgery(694).  albumin_fl(694):=290.  ~dialysis(694).  ~icu(694).  ~hospital(694).  meld(694):=15.  ~l_sup(694).  ~enceph(694).  ~p_thromb(694).  ~ascites(694).   alive(694). ~portal_bleed(694).  donor_age(694):=52.  ~vascular_acc(694).  creatinine_fl(694):=140.  cold_ischemia(694):=282.  utility(694):=94.
+
+
+transplant(695).
+
+age(695):=60.  bmi(695):=25.  p_trans(695):=0.  ~ab_surgery(695).  albumin_fl(695):=370.  ~dialysis(695).  ~icu(695).  ~hospital(695).  meld(695):=14.  ~l_sup(695).   enceph(695).   p_thromb(695).   ascites(695).   alive(695). ~portal_bleed(695).  donor_age(695):=72.   vascular_acc(695).  creatinine_fl(695):=70.   cold_ischemia(695):=245.  utility(695):=93.
+
+
+transplant(696).
+
+age(696):=61.  bmi(696):=30.  p_trans(696):=0.  ~ab_surgery(696).  albumin_fl(696):=320.  ~dialysis(696).   icu(696).  ~hospital(696).  meld(696):=16.   l_sup(696).   enceph(696).  ~p_thromb(696).   ascites(696).   alive(696). ~portal_bleed(696).  donor_age(696):=79.   vascular_acc(696).  creatinine_fl(696):=250.  cold_ischemia(696):=270.  utility(696):=93.
+
+
+transplant(697).
+
+age(697):=55.  bmi(697):=29.  p_trans(697):=0.   ab_surgery(697).  albumin_fl(697):=380.  ~dialysis(697).  ~icu(697).  ~hospital(697).  meld(697):=15.  ~l_sup(697).   enceph(697).   p_thromb(697).  ~ascites(697).   alive(697). ~portal_bleed(697).  donor_age(697):=50.  ~vascular_acc(697).  creatinine_fl(697):=150.  cold_ischemia(697):=685.  utility(697):=92.
+
+
+transplant(698).
+
+age(698):=47.  bmi(698):=31.  p_trans(698):=0.  ~ab_surgery(698).  albumin_fl(698):=420.  ~dialysis(698).  ~icu(698).   hospital(698).  meld(698):=36.  ~l_sup(698).   enceph(698).   p_thromb(698).   ascites(698).  ~alive(698). ~portal_bleed(698).  donor_age(698):=64.   vascular_acc(698).  creatinine_fl(698):=100.  cold_ischemia(698):=295.  utility(698):=28.
+
+
+transplant(699).
+
+age(699):=63.  bmi(699):=26.  p_trans(699):=0.  ~ab_surgery(699).  albumin_fl(699):=380.  ~dialysis(699).  ~icu(699).  ~hospital(699).  meld(699):=14.  ~l_sup(699).  ~enceph(699).   p_thromb(699).   ascites(699).   alive(699). ~portal_bleed(699).  donor_age(699):=64.   vascular_acc(699).  creatinine_fl(699):=70.   cold_ischemia(699):=262.  utility(699):=92.
+
+
+transplant(700).
+
+age(700):=47.  bmi(700):=22.  p_trans(700):=0.  ~ab_surgery(700).  albumin_fl(700):=330.  ~dialysis(700).  ~icu(700).   hospital(700).  meld(700):=18.  ~l_sup(700).   enceph(700).  ~p_thromb(700).   ascites(700).   alive(700). portal_bleed(700).  donor_age(700):=51.   vascular_acc(700).  creatinine_fl(700):=80.   cold_ischemia(700):=183.  utility(700):=92.
+
+
+transplant(701).
+
+age(701):=55.  bmi(701):=22.  p_trans(701):=0.   ab_surgery(701).  albumin_fl(701):=300.  ~dialysis(701).  ~icu(701).   hospital(701).  meld(701):=5.   ~l_sup(701).   enceph(701).   p_thromb(701).   ascites(701).  ~alive(701). ~portal_bleed(701).  donor_age(701):=60.   vascular_acc(701).  creatinine_fl(701):=80.   cold_ischemia(701):=220. utility(701):=75.
+
+
+transplant(703).
+
+age(703):=55.  bmi(703):=25.  p_trans(703):=0.  ~ab_surgery(703).  albumin_fl(703):=270.  ~dialysis(703).  ~icu(703).  ~hospital(703).  meld(703):=21.  ~l_sup(703).   enceph(703).  ~p_thromb(703).   ascites(703).   alive(703). ~portal_bleed(703).  donor_age(703):=51.  ~vascular_acc(703).  creatinine_fl(703):=950.  cold_ischemia(703):=255.  utility(703):=9.
+
+
+transplant(704).
+
+age(704):=45.  bmi(704):=20.  p_trans(704):=0.   ab_surgery(704).  albumin_fl(704):=320.  ~dialysis(704).  ~icu(704).  ~hospital(704).  meld(704):=11.  ~l_sup(704).  ~enceph(704).  ~p_thromb(704).   ascites(704).  ~alive(704). ~portal_bleed(704).  donor_age(704):=66.   vascular_acc(704).  creatinine_fl(704):=0.    cold_ischemia(704):=368.  utility(704):=4.
+
+
+transplant(705).
+
+age(705):=66.  bmi(705):=25.  p_trans(705):=0.  ~ab_surgery(705).  albumin_fl(705):=459.  ~dialysis(705).  ~icu(705).  ~hospital(705).  meld(705):=4.   ~l_sup(705).  ~enceph(705).  ~p_thromb(705).  ~ascites(705).   alive(705). ~portal_bleed(705).  donor_age(705):=64.   vascular_acc(705).  creatinine_fl(705):=60.   cold_ischemia(705):=275.  utility(705):=90.
+
+
+transplant(706).
+
+age(706):=48.  bmi(706):=36.  p_trans(706):=0.  ~ab_surgery(706).  albumin_fl(706):=340.  ~dialysis(706).  ~icu(706).  ~hospital(706).  meld(706):=21.  ~l_sup(706).  ~enceph(706).  ~p_thromb(706).   ascites(706).   alive(706). ~portal_bleed(706).  donor_age(706):=58.   vascular_acc(706).  creatinine_fl(706):=160.  cold_ischemia(706):=265.  utility(706):=90.
+
+
+transplant(707).
+
+age(707):=69.  bmi(707):=27.  p_trans(707):=0.  ~ab_surgery(707).  albumin_fl(707):=340.  ~dialysis(707).  ~icu(707).  ~hospital(707).  meld(707):=14.  ~l_sup(707).   enceph(707).  ~p_thromb(707).  ~ascites(707).   alive(707). ~portal_bleed(707).  donor_age(707):=55.  ~vascular_acc(707).  creatinine_fl(707):=160.  cold_ischemia(707):=311.  utility(707):=90.
+
+
+transplant(708).
+
+age(708):=53.  bmi(708):=28.  p_trans(708):=0.  ~ab_surgery(708).  albumin_fl(708):=310.  ~dialysis(708).  ~icu(708).  ~hospital(708).  meld(708):=9.   ~l_sup(708).   enceph(708).  ~p_thromb(708).  ~ascites(708).   alive(708). ~portal_bleed(708).  donor_age(708):=50.   vascular_acc(708).  creatinine_fl(708):=90.   cold_ischemia(708):=318. utility(708):=90.
+
+
+transplant(709).
+
+age(709):=47.  bmi(709):=24.  p_trans(709):=0.  ~ab_surgery(709).  albumin_fl(709):=320.  ~dialysis(709).  ~icu(709).  ~hospital(709).  meld(709):=16.  ~l_sup(709).  ~enceph(709).  ~p_thromb(709).   ascites(709).   alive(709). ~portal_bleed(709).  donor_age(709):=47.  ~vascular_acc(709).  creatinine_fl(709):=90.   cold_ischemia(709):=675.  utility(709):=89.
+
+
+transplant(710).
+
+age(710):=48.  bmi(710):=26.  p_trans(710):=0.  ~ab_surgery(710).  albumin_fl(710):=310.  ~dialysis(710).   icu(710).  ~hospital(710).  meld(710):=26.   l_sup(710).   enceph(710).  ~p_thromb(710).   ascites(710).  ~alive(710). ~portal_bleed(710).  donor_age(710):=49.  ~vascular_acc(710).  creatinine_fl(710):=100.  cold_ischemia(710):=360.  utility(710):=0.
+
+
+transplant(711).
+
+age(711):=54.  bmi(711):=25.  p_trans(711):=0.  ~ab_surgery(711).  albumin_fl(711):=260.  ~dialysis(711).  ~icu(711).  ~hospital(711).  meld(711):=24.  ~l_sup(711).   enceph(711).  ~p_thromb(711).   ascites(711).   alive(711).  ~portal_bleed(711).  donor_age(711):=53.  ~vascular_acc(711).  creatinine_fl(711):=70.   cold_ischemia(711):=250.  utility(711):=88.
+
+
+transplant(712).
+
+age(712):=48.  bmi(712):=29.  p_trans(712):=0.  ~ab_surgery(712).  albumin_fl(712):=330.   dialysis(712).  ~icu(712).  ~hospital(712).  meld(712):=29.  ~l_sup(712).  ~enceph(712).  ~p_thromb(712).  ~ascites(712).   alive(712). ~portal_bleed(712).  donor_age(712):=23.  ~vascular_acc(712).  creatinine_fl(712):=40.   cold_ischemia(712):=310.  utility(712):=88.
+
+
+transplant(713).
+
+age(713):=62.  bmi(713):=27.  p_trans(713):=0.  ~ab_surgery(713).  albumin_fl(713):=220.  ~dialysis(713).  ~icu(713).  ~hospital(713).  meld(713):=21.  ~l_sup(713).   enceph(713).  ~p_thromb(713).   ascites(713).   alive(713).  ~portal_bleed(713).  donor_age(713):=67.   vascular_acc(713).  creatinine_fl(713):=110.  cold_ischemia(713):=295.  utility(713):=88.
+
+
+transplant(714).
+
+age(714):=50.  bmi(714):=23.  p_trans(714):=0.  ~ab_surgery(714).  albumin_fl(714):=260.  ~dialysis(714).  ~icu(714).   hospital(714).  meld(714):=22.  ~l_sup(714).  ~enceph(714).  ~p_thromb(714).   ascites(714).   alive(714).   ~portal_bleed(714).  donor_age(714):=45.  ~vascular_acc(714).  creatinine_fl(714):=130.  cold_ischemia(714):=345.  utility(714):=87.
+
+
+transplant(715).
+
+age(715):=50.  bmi(715):=30.  p_trans(715):=0.  ~ab_surgery(715).  albumin_fl(715):=280.  ~dialysis(715).  ~icu(715).   hospital(715).  meld(715):=33.  ~l_sup(715).   enceph(715).  ~p_thromb(715).   ascites(715).  ~alive(715).   ~portal_bleed(715).  donor_age(715):=71.   vascular_acc(715).  creatinine_fl(715):=100.  cold_ischemia(715):=315.  utility(715):=2.
+
+
+transplant(716).
+
+age(716):=49.  bmi(716):=30.  p_trans(716):=0.  ~ab_surgery(716).  albumin_fl(716):=330.  ~dialysis(716).  ~icu(716).  ~hospital(716).  meld(716):=18.  ~l_sup(716).  ~enceph(716).   p_thromb(716).   ascites(716).   alive(716).   ~portal_bleed(716).  donor_age(716):=55.  ~vascular_acc(716).  creatinine_fl(716):=130.  cold_ischemia(716):=425.  utility(716):=0.
+
+
+transplant(717).
+
+age(717):=49.  bmi(717):=30.  p_trans(717):=1.   ab_surgery(717).  albumin_fl(717):=0.     dialysis(717).   icu(717).  ~hospital(717).  meld(717):=35.   l_sup(717).  ~enceph(717).   p_thromb(717).   ascites(717).   alive(717).     ~portal_bleed(717).  donor_age(717):=55.  ~vascular_acc(717).  creatinine_fl(717):=70.   cold_ischemia(717):=280.  utility(717):=86.
+
+
+transplant(718).
+
+age(718):=65.  bmi(718):=27.  p_trans(718):=0.   ab_surgery(718).  albumin_fl(718):=330.  ~dialysis(718).  ~icu(718).  ~hospital(718).  meld(718):=11.  ~l_sup(718).   enceph(718).   p_thromb(718).   ascites(718).   alive(718).   ~portal_bleed(718).  donor_age(718):=31.  ~vascular_acc(718).  creatinine_fl(718):=80.   cold_ischemia(718):=645.  utility(718):=85.
+
+
+transplant(719).
+
+age(719):=64.  bmi(719):=27.  p_trans(719):=0.  ~ab_surgery(719).  albumin_fl(719):=200.  ~dialysis(719).  ~icu(719).  ~hospital(719).  meld(719):=25.  ~l_sup(719).   enceph(719).  ~p_thromb(719).   ascites(719).   alive(719).   ~portal_bleed(719).  donor_age(719):=67.  ~vascular_acc(719).  creatinine_fl(719):=100.  cold_ischemia(719):=365.  utility(719):=85.
+
+
+transplant(720).
+
+age(720):=40.  bmi(720):=23.  p_trans(720):=0.  ~ab_surgery(720).  albumin_fl(720):=250.  ~dialysis(720).  ~icu(720).  ~hospital(720).  meld(720):=18.  ~l_sup(720).   enceph(720).  ~p_thromb(720).  ~ascites(720).   alive(720).   ~portal_bleed(720).  donor_age(720):=45.   vascular_acc(720).  creatinine_fl(720):=90.   cold_ischemia(720):=415.  utility(720):=85.
+
+
+transplant(721).
+
+age(721):=43.  bmi(721):=24.  p_trans(721):=0.  ~ab_surgery(721).  albumin_fl(721):=390.  ~dialysis(721).  ~icu(721).  ~hospital(721).  meld(721):=13.  ~l_sup(721).  ~enceph(721).  ~p_thromb(721).  ~ascites(721).   alive(721).   ~portal_bleed(721).  donor_age(721):=39.  ~vascular_acc(721).  creatinine_fl(721):=20.   cold_ischemia(721):=515.  utility(721):=85.
+
+
+transplant(722).
+
+age(722):=40.  bmi(722):=30.  p_trans(722):=0.  ~ab_surgery(722).  albumin_fl(722):=260.  ~dialysis(722).  ~icu(722).  ~hospital(722).  meld(722):=22.  ~l_sup(722).   enceph(722).  ~p_thromb(722).   ascites(722).   alive(722).   ~portal_bleed(722).  donor_age(722):=75.   vascular_acc(722).  creatinine_fl(722):=80.   cold_ischemia(722):=400.  utility(722):=84.
+
+
+transplant(723).
+
+age(723):=70.  bmi(723):=30.  p_trans(723):=0.   ab_surgery(723).  albumin_fl(723):=340.  ~dialysis(723).  ~icu(723).  ~hospital(723).  meld(723):=10.  ~l_sup(723).  ~enceph(723).   p_thromb(723).  ~ascites(723).   alive(723).   ~portal_bleed(723).  donor_age(723):=70.   vascular_acc(723).  creatinine_fl(723):=60.   cold_ischemia(723):=310.  utility(723):=84.
+
+
+transplant(724).
+
+age(724):=54.  bmi(724):=23.  p_trans(724):=0.  ~ab_surgery(724).  albumin_fl(724):=380.  ~dialysis(724).  ~icu(724).  ~hospital(724).  meld(724):=0.   ~l_sup(724).  ~enceph(724).  ~p_thromb(724).  ~ascites(724).   alive(724).   ~portal_bleed(724).  donor_age(724):=79.  ~vascular_acc(724).  creatinine_fl(724):=120.  cold_ischemia(724):=260.  utility(724):=84.
+
+
+transplant(725).
+
+age(725):=53.  bmi(725):=31.  p_trans(725):=0.   ab_surgery(725).  albumin_fl(725):=360.  ~dialysis(725).  ~icu(725).  ~hospital(725).  meld(725):=10.  ~l_sup(725).   enceph(725).  ~p_thromb(725).   ascites(725).   alive(725).   ~portal_bleed(725).  donor_age(725):=51.   vascular_acc(725).  creatinine_fl(725):=40.   cold_ischemia(725):=435.  utility(725):=83.
+
+
+transplant(727).
+
+age(727):=58.  bmi(727):=34.  p_trans(727):=0.  ~ab_surgery(727).  albumin_fl(727):=350.  ~dialysis(727).  ~icu(727).  ~hospital(727).  meld(727):=12.  ~l_sup(727).   enceph(727).   p_thromb(727).  ~ascites(727).  ~alive(727).   ~portal_bleed(727).  donor_age(727):=65.  ~vascular_acc(727).  creatinine_fl(727):=60.   cold_ischemia(727):=347.   utility(727):=57.
+
+
+transplant(728).
+
+age(728):=49.  bmi(728):=25.  p_trans(728):=0.  ~ab_surgery(728).  albumin_fl(728):=380.  ~dialysis(728).  ~icu(728).  ~hospital(728).  meld(728):=11.  ~l_sup(728).  ~enceph(728).  ~p_thromb(728).  ~ascites(728).   alive(728).   ~portal_bleed(728).  donor_age(728):=44.   vascular_acc(728).  creatinine_fl(728):=110.  cold_ischemia(728):=310.  utility(728):=82.
+
+
+transplant(729).
+
+age(729):=55.  bmi(729):=21.  p_trans(729):=1.   ab_surgery(729).  albumin_fl(729):=380.  ~dialysis(729).  ~icu(729).   hospital(729).  meld(729):=26.  ~l_sup(729).  ~enceph(729).  ~p_thromb(729).  ~ascites(729).   alive(729).   ~portal_bleed(729).  donor_age(729):=52.  ~vascular_acc(729).  creatinine_fl(729):=810.  cold_ischemia(729):=555.  utility(729):=82.
+
+
+transplant(730).
+
+age(730):=44.  bmi(730):=22.  p_trans(730):=0.  ~ab_surgery(730).  albumin_fl(730):=260.  ~dialysis(730).  ~icu(730).   hospital(730).  meld(730):=26.  ~l_sup(730).  ~enceph(730).  ~p_thromb(730).   ascites(730).   alive(730).   ~portal_bleed(730).  donor_age(730):=47.  ~vascular_acc(730).  creatinine_fl(730):=130.  cold_ischemia(730):=480.  utility(730):=0.
+
+
+transplant(731).
+
+age(731):=44.  bmi(731):=20.  p_trans(731):=1.   ab_surgery(731).  albumin_fl(731):=260.   dialysis(731).   icu(731).  ~hospital(731).  meld(731):=20.   l_sup(731).  ~enceph(731).  ~p_thromb(731).  ~ascites(731).   alive(731).  ~portal_bleed(731).  donor_age(731):=46.   vascular_acc(731).  creatinine_fl(731):=140.  cold_ischemia(731):=226.  utility(731):=82.
+
+
+transplant(732).
+
+age(732):=65.  bmi(732):=31.  p_trans(732):=0.  ~ab_surgery(732).  albumin_fl(732):=320.  ~dialysis(732).  ~icu(732).  ~hospital(732).  meld(732):=4.   ~l_sup(732).  ~enceph(732).  ~p_thromb(732).  ~ascites(732).  ~alive(732).   ~portal_bleed(732).  donor_age(732):=42.   vascular_acc(732).  creatinine_fl(732):=110.  cold_ischemia(732):=140.  utility(732):=30.
+
+
+transplant(733).
+
+age(733):=53.  bmi(733):=29.  p_trans(733):=0.  ~ab_surgery(733).  albumin_fl(733):=290.  ~dialysis(733).  ~icu(733).  ~hospital(733).  meld(733):=19.  ~l_sup(733).   enceph(733).  ~p_thromb(733).   ascites(733).   alive(733).   ~portal_bleed(733).  donor_age(733):=64.   vascular_acc(733).  creatinine_fl(733):=90.   cold_ischemia(733):=365.  utility(733):=80.
+
+
+transplant(734).
+
+age(734):=62.  bmi(734):=24.  p_trans(734):=0.  ~ab_surgery(734).  albumin_fl(734):=320.  ~dialysis(734).  ~icu(734).  ~hospital(734).  meld(734):=12.  ~l_sup(734).   enceph(734).  ~p_thromb(734).  ~ascites(734).   alive(734).   ~portal_bleed(734).  donor_age(734):=47.   vascular_acc(734).  creatinine_fl(734):=90.   cold_ischemia(734):=310.  utility(734):=80.
+
+
+transplant(735).
+
+age(735):=64.  bmi(735):=25.  p_trans(735):=0.  ~ab_surgery(735).  albumin_fl(735):=310.  ~dialysis(735).  ~icu(735).  ~hospital(735).  meld(735):=19.  ~l_sup(735).   enceph(735).  ~p_thromb(735).   ascites(735).   alive(735).   ~portal_bleed(735).  donor_age(735):=37.   vascular_acc(735).  creatinine_fl(735):=110.  cold_ischemia(735):=415.  utility(735):=80.
+
+
+transplant(736).
+
+age(736):=45.  bmi(736):=30.  p_trans(736):=0.  ~ab_surgery(736).  albumin_fl(736):=290.  ~dialysis(736).  ~icu(736).  ~hospital(736).  meld(736):=15.  ~l_sup(736).   enceph(736).  ~p_thromb(736).  ~ascites(736).   alive(736).   ~portal_bleed(736).  donor_age(736):=38.  ~vascular_acc(736).  creatinine_fl(736):=90.   cold_ischemia(736):=270.  utility(736):=80.
+
+
+transplant(737).
+
+age(737):=63.  bmi(737):=22.  p_trans(737):=0.   ab_surgery(737).  albumin_fl(737):=509.  ~dialysis(737).  ~icu(737).  ~hospital(737).  meld(737):=4.   ~l_sup(737).  ~enceph(737).  ~p_thromb(737).  ~ascites(737).  ~alive(737).   ~portal_bleed(737).  donor_age(737):=51.   vascular_acc(737).  creatinine_fl(737):=40.   cold_ischemia(737):=750.  utility(737):=37.
+
+
+transplant(738).
+
+age(738):=58.  bmi(738):=26.  p_trans(738):=0.  ~ab_surgery(738).  albumin_fl(738):=310.  ~dialysis(738).  ~icu(738).  ~hospital(738).  meld(738):=17.  ~l_sup(738).  ~enceph(738).  ~p_thromb(738).   ascites(738).   alive(738).   ~portal_bleed(738).  donor_age(738):=58.  ~vascular_acc(738).  creatinine_fl(738):=50.   cold_ischemia(738):=245.  utility(738):=79.
+
+
+transplant(739).
+
+age(739):=65.  bmi(739):=32.  p_trans(739):=0.   ab_surgery(739).  albumin_fl(739):=420.  ~dialysis(739).  ~icu(739).  ~hospital(739).  meld(739):=9.   ~l_sup(739).  ~enceph(739).  ~p_thromb(739).  ~ascites(739).  ~alive(739).   ~portal_bleed(739).  donor_age(739):=60.  ~vascular_acc(739).  creatinine_fl(739):=90.   cold_ischemia(739):=295.  utility(739):=36.
+
+
+transplant(740).
+
+age(740):=66.  bmi(740):=26.  p_trans(740):=0.   ab_surgery(740).  albumin_fl(740):=240.  ~dialysis(740).  ~icu(740).  ~hospital(740).  meld(740):=15.  ~l_sup(740).  ~enceph(740).  ~p_thromb(740).  ~ascites(740).  ~alive(740).   ~portal_bleed(740).  donor_age(740):=60.   vascular_acc(740).  creatinine_fl(740):=90.   cold_ischemia(740):=390.  utility(740):=0.
+
+
+transplant(741).
+
+age(741):=52.  bmi(741):=40.  p_trans(741):=0.  ~ab_surgery(741).  albumin_fl(741):=370.  ~dialysis(741).  ~icu(741).  ~hospital(741).  meld(741):=10.  ~l_sup(741).  ~enceph(741).  ~p_thromb(741).  ~ascites(741).   alive(741).   ~portal_bleed(741).  donor_age(741):=75.   vascular_acc(741).  creatinine_fl(741):=120.  cold_ischemia(741):=415.  utility(741):=79.
+
+
+transplant(742).
+
+age(742):=55.  bmi(742):=37.  p_trans(742):=0.  ~ab_surgery(742).  albumin_fl(742):=260.  ~dialysis(742).  ~icu(742).  ~hospital(742).  meld(742):=19.  ~l_sup(742).   enceph(742).  ~p_thromb(742).   ascites(742).   alive(742).   ~portal_bleed(742).  donor_age(742):=63.  ~vascular_acc(742).  creatinine_fl(742):=120.  cold_ischemia(742):=250.  utility(742):=79.
+
+
+transplant(743).
+
+age(743):=52.  bmi(743):=26.  p_trans(743):=0.  ~ab_surgery(743).  albumin_fl(743):=390.  ~dialysis(743).  ~icu(743).  ~hospital(743).  meld(743):=14.  ~l_sup(743).   enceph(743).  ~p_thromb(743).   ascites(743).  ~alive(743).   ~portal_bleed(743).  donor_age(743):=67.   vascular_acc(743).  creatinine_fl(743):=80.   cold_ischemia(743):=275.  utility(743):=63.
+
+
+transplant(744).
+
+age(744):=62.  bmi(744):=22.  p_trans(744):=1.  ~ab_surgery(744).  albumin_fl(744):=430.  ~dialysis(744).  ~icu(744).  ~hospital(744).  meld(744):=18.  ~l_sup(744).  ~enceph(744).  ~p_thromb(744).   ascites(744).   alive(744).   ~portal_bleed(744).  donor_age(744):=53.   vascular_acc(744).  creatinine_fl(744):=50.   cold_ischemia(744):=270.  utility(744):=79.
+
+
+transplant(745).
+
+age(745):=44.  bmi(745):=21.  p_trans(745):=0.   ab_surgery(745).  albumin_fl(745):=440.  ~dialysis(745).  ~icu(745).  ~hospital(745).  meld(745):=5.   ~l_sup(745).  ~enceph(745).  ~p_thromb(745).  ~ascites(745).   alive(745).   ~portal_bleed(745).  donor_age(745):=51.  ~vascular_acc(745).  creatinine_fl(745):=40.   cold_ischemia(745):=300.  utility(745):=79.
+
+
+transplant(746).
+
+age(746):=56.  bmi(746):=29.  p_trans(746):=0.  ~ab_surgery(746).  albumin_fl(746):=430.  ~dialysis(746).  ~icu(746).  ~hospital(746).  meld(746):=3.   ~l_sup(746).  ~enceph(746).  ~p_thromb(746).  ~ascites(746).  ~alive(746).   ~portal_bleed(746).  donor_age(746):=64.  ~vascular_acc(746).  creatinine_fl(746):=110.  cold_ischemia(746):=370.  utility(746):=2.
+
+
+transplant(747).
+
+age(747):=59.  bmi(747):=28.  p_trans(747):=0.  ~ab_surgery(747).  albumin_fl(747):=330.  ~dialysis(747).  ~icu(747).  ~hospital(747).  
+  meld(747):=8.   ~l_sup(747).  ~enceph(747).  ~p_thromb(747).  ~ascites(747).  ~alive(747).   ~portal_bleed(747).  donor_age(747):=27.  ~vascular_acc(747).  creatinine_fl(747):=60.   cold_ischemia(747):=310.  utility(747):=3.
+
+
+transplant(748).
+
+age(748):=54.  bmi(748):=24.  p_trans(748):=0.  ~ab_surgery(748).  albumin_fl(748):=180.  ~dialysis(748).  ~icu(748).  ~hospital(748).  meld(748):=14.  ~l_sup(748).  ~enceph(748).  ~p_thromb(748).  ~ascites(748).   alive(748).   ~portal_bleed(748).  donor_age(748):=69.  ~vascular_acc(748).  creatinine_fl(748):=140.  cold_ischemia(748):=295.  utility(748):=2.
+
+
+transplant(749).
+
+age(749):=48.  bmi(749):=27.  p_trans(749):=0.   ab_surgery(749).  albumin_fl(749):=350.  ~dialysis(749).  ~icu(749).  ~hospital(749).  
+  meld(749):=16.  ~l_sup(749).   enceph(749).  ~p_thromb(749).   ascites(749).   alive(749).   ~portal_bleed(749).  donor_age(749):=67.   vascular_acc(749).  creatinine_fl(749):=160.  cold_ischemia(749):=435.  utility(749):=77.
+
+
+transplant(750).
+
+age(750):=56.  bmi(750):=27.  p_trans(750):=0.  ~ab_surgery(750).  albumin_fl(750):=430.   dialysis(750).   icu(750).  ~hospital(750).  meld(750):=29.   l_sup(750).   enceph(750).  ~p_thromb(750).   ascites(750).   alive(750).   ~portal_bleed(750).  donor_age(750):=50.   vascular_acc(750).  creatinine_fl(750):=110.  cold_ischemia(750):=392.  utility(750):=77.
+
+
+transplant(751).
+
+age(751):=59.  bmi(751):=32.  p_trans(751):=0.  ~ab_surgery(751).  albumin_fl(751):=370.  ~dialysis(751).  ~icu(751).  ~hospital(751).  meld(751):=33.  ~l_sup(751).  ~enceph(751).  ~p_thromb(751).  ~ascites(751).   alive(751).   ~portal_bleed(751).  donor_age(751):=51.  ~vascular_acc(751).  creatinine_fl(751):=70.   cold_ischemia(751):=310.  utility(751):=0.
+
+
+transplant(752).
+
+age(752):=63.  bmi(752):=36.  p_trans(752):=0.  ~ab_surgery(752).  albumin_fl(752):=320.  ~dialysis(752).  ~icu(752).  ~hospital(752).  
+  meld(752):=18.  ~l_sup(752).   enceph(752).  ~p_thromb(752).  ~ascites(752).   alive(752).   ~portal_bleed(752).  donor_age(752):=67.  ~vascular_acc(752).  creatinine_fl(752):=110.  cold_ischemia(752):=190.  utility(752):=77.
+
+
+transplant(753).
+
+age(753):=59.  bmi(753):=32.  p_trans(753):=1.   ab_surgery(753).  albumin_fl(753):=350.  ~dialysis(753).   icu(753).  ~hospital(753).  meld(753):=12.   l_sup(753).  ~enceph(753).   p_thromb(753).  ~ascites(753).   alive(753).   ~portal_bleed(753).  donor_age(753):=47.  ~vascular_acc(753).  creatinine_fl(753):=80.   cold_ischemia(753):=529.  utility(753):=76.
+
+
+transplant(754).
+
+age(754):=66.  bmi(754):=28.  p_trans(754):=0.  ~ab_surgery(754).  albumin_fl(754):=409.  ~dialysis(754).  ~icu(754).  ~hospital(754).  meld(754):=9.   ~l_sup(754).   enceph(754).  ~p_thromb(754).   ascites(754).   alive(754).   ~portal_bleed(754).  donor_age(754):=52.  ~vascular_acc(754).  creatinine_fl(754):=70.   cold_ischemia(754):=870.  utility(754):=76.
+
+
+transplant(755).
+
+age(755):=54.  bmi(755):=25.  p_trans(755):=1.   ab_surgery(755).  albumin_fl(755):=380.  ~dialysis(755).  ~icu(755).  ~hospital(755).  meld(755):=13.  ~l_sup(755).  ~enceph(755).  ~p_thromb(755).  ~ascites(755).   alive(755).   ~portal_bleed(755).  donor_age(755):=66.   vascular_acc(755).  creatinine_fl(755):=50.   cold_ischemia(755):=355.  utility(755):=76.
+
+
+transplant(756).
+
+age(756):=64.  bmi(756):=44.  p_trans(756):=0.  ~ab_surgery(756).  albumin_fl(756):=220.  ~dialysis(756).  ~icu(756).  ~hospital(756).  meld(756):=14.  ~l_sup(756).   enceph(756).  ~p_thromb(756).   ascites(756).   alive(756).   portal_bleed(756).  donor_age(756):=75.   vascular_acc(756).  creatinine_fl(756):=110.  cold_ischemia(756):=310.  utility(756):=75.
+
+
+transplant(757).
+
+age(757):=49.  bmi(757):=28.  p_trans(757):=0.  ~ab_surgery(757).  albumin_fl(757):=310.  ~dialysis(757).  ~icu(757).  ~hospital(757).  meld(757):=15.  ~l_sup(757).  ~enceph(757).  ~p_thromb(757).  ~ascites(757).   alive(757).   ~portal_bleed(757).  donor_age(757):=45.  ~vascular_acc(757).  creatinine_fl(757):=130.  cold_ischemia(757):=190.  utility(757):=0.
+
+
+transplant(758).
+
+age(758):=50.  bmi(758):=28.  p_trans(758):=1.   ab_surgery(758).  albumin_fl(758):=280.  ~dialysis(758).   icu(758).  ~hospital(758).  meld(758):=20.   l_sup(758).  ~enceph(758).  ~p_thromb(758).  ~ascites(758).  ~alive(758).   ~portal_bleed(758).  donor_age(758):=77.   vascular_acc(758).  creatinine_fl(758):=70.   cold_ischemia(758):=325.    utility(758):=1.
+
+
+transplant(759).
+
+age(759):=59.  bmi(759):=26.  p_trans(759):=0.  ~ab_surgery(759).  albumin_fl(759):=300.  ~dialysis(759).  ~icu(759).  ~hospital(759).  meld(759):=15.  ~l_sup(759).  ~enceph(759).  ~p_thromb(759).  ~ascites(759).   alive(759).   ~portal_bleed(759).  donor_age(759):=41.  ~vascular_acc(759).  creatinine_fl(759):=100.  cold_ischemia(759):=270.  utility(759):=74.
+
+
+transplant(760).
+
+age(760):=61.  bmi(760):=24.  p_trans(760):=0.  ~ab_surgery(760).  albumin_fl(760):=340.  ~dialysis(760).  ~icu(760).  ~hospital(760).  meld(760):=8.   ~l_sup(760).   enceph(760).  ~p_thromb(760).  ~ascites(760).   alive(760).   ~portal_bleed(760).  donor_age(760):=53.   vascular_acc(760).  creatinine_fl(760):=70.   cold_ischemia(760):=309.  utility(760):=74.
+
+
+transplant(761).
+
+age(761):=54.  bmi(761):=24.  p_trans(761):=0.  ~ab_surgery(761).  albumin_fl(761):=320.  ~dialysis(761).  ~icu(761).  ~hospital(761).  meld(761):=12.  ~l_sup(761).   enceph(761).   p_thromb(761).   ascites(761).  ~alive(761).   ~portal_bleed(761).  donor_age(761):=51.   vascular_acc(761).  creatinine_fl(761):=40.   cold_ischemia(761):=285.  utility(761):=13.
+
+
+transplant(762).
+
+age(762):=64.  bmi(762):=22.  p_trans(762):=0.  ~ab_surgery(762).  albumin_fl(762):=310.  ~dialysis(762).  ~icu(762).  ~hospital(762).  meld(762):=8.   ~l_sup(762).   enceph(762).   p_thromb(762).   ascites(762).   alive(762).   ~portal_bleed(762).  donor_age(762):=80.   vascular_acc(762).  creatinine_fl(762):=40.   cold_ischemia(762):=393.  utility(762):=73.
+
+
+transplant(763).
+
+age(763):=49.  bmi(763):=33.  p_trans(763):=0.  ~ab_surgery(763).  albumin_fl(763):=280.  ~dialysis(763).   icu(763).  ~hospital(763).  meld(763):=28.   l_sup(763).  ~enceph(763).   p_thromb(763).  ~ascites(763).   alive(763).   ~portal_bleed(763).  donor_age(763):=32.   vascular_acc(763).  creatinine_fl(763):=90.   cold_ischemia(763):=380.  utility(763):=73.
+
+ 
+
+
+% FALTAN DATOS DE LOS PACIENTES 702 Y 726
+  
+  ~portal_bleed(702).  donor_age(702):=61.   vascular_acc(702).  creatinine_fl(702):=70.   cold_ischemia(702):=325.
+    
+  ~portal_bleed(726).  donor_age(726):=66.   vascular_acc(726).  creatinine_fl(726):=70.   cold_ischemia(726):=470.
+

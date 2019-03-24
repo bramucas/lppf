@@ -104,3 +104,14 @@ binop(_N,F,L,T):-binop(F,L,T).
 
 binop(_F,[X],X):-!.
 binop(F,[X|L],T):-binop(F,L,T0),T =.. [F,X,T0].
+
+
+% replaceString(OriginalString, StringToReplace, Replacement, Result)
+replaceString(OriginalString, StringToReplace, Replacement, Result) :-
+	atomic_list_concat(AuxString, StringToReplace, OriginalString), 
+	atomic_list_concat(AuxString, Replacement, Result).
+
+sort_atoms_by_length(Atoms, ByLength) :-
+        map_list_to_pairs(atom_length, Atoms, Pairs),
+        keysort(Pairs, Sorted),
+        pairs_values(Sorted, ByLength).

@@ -22,11 +22,11 @@ loadfiles([Fname|Fs]):-
 	get_implicit_fnames.
 
 preparse_files([],_):-!.
-preparse_files([F|Fs],TmpFile):-
-	(opt(quiet),!; writelist(['loading file ',F,'...']),nl),
-	concatall(['getterms < ',F,' >> ',TmpFile],Command),
-	shell(Command),
-	preparse_files(Fs,TmpFile).
+preparse_files(FilesList, TmpFile):-
+	atomic_list_concat(FilesList, ' ', FilesNames),
+	(opt(quiet),!; writelist(['loading files ',FilesNames,'...']),nl),
+	concatall(['cat ', FilesNames,' | ./getterms  >> ',TmpFile],Command),
+	shell(Command).
 
 read_terms:-
 	read(Term),
@@ -42,6 +42,12 @@ read_terms:-
 	  ; Term=show(F/N),!,
 	    (fname(F/N),!; assertz(show(F/N)) )	    
 
+	  ; Term=explainrule(Head,Body),!,
+	  	assertz(explainRule(Head,Body)) 
+
+	  ; Term=labelrule(LabelNumber,Label,Head,Body),!,
+	  	assertz(labelRule(LabelNumber,Label,Head,Body)) 
+
 	  ; debugln(['Not implemented:',Term])
 	  ),
 	  read_terms
@@ -51,12 +57,14 @@ get_implicit_fnames:-
 	repeat,
 	  ( rule(_,H,B),
 	    get_implicit_fname(H),
-		get_non0ary_fname(H),
-		get_non0ary_fname(B),
+	    get_non0ary_fname(H),
+	    get_non0ary_fname(B),
+	    get_boolean_equalities(B),
 	    fail
 	  ; true),!.
 
 get_implicit_fname( assign(fterm(F,L),_) ) :- length(L,N), assertfname(F/N).
+get_implicit_fname( def_assign(fterm(F,L),_) ) :- length(L,N), assertfname(F/N).
 get_implicit_fname( choice(fterm(F,L),_) ) :- length(L,N), assertfname(F/N).
 
 get_non0ary_fname(T):-
@@ -69,6 +77,18 @@ get_non0ary_fname(T):-
 	  fail
 	; true
 	),!.
+
+get_boolean_equalities(T):-
+	subterms(['=='/2],T,Xs),
+	repeat, (
+	  member(fterm(F,Args) == _,Xs),
+	  length(Args,N),
+	  assertfname(F/N),
+	  fail
+	; true
+	),!.
+
+
 	
 assertfname(N):-fname(N),!.
 assertfname(N):-assertz(fname(N)).

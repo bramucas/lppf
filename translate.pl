@@ -1,21 +1,26 @@
-:- dynamic varnum/1, prednum/1.
+:- dynamic varnum/1, prednum/1, body/2.
 varnum(0).
 prednum(0).
 
 translate :-
+  write('neg(true,false).\n'),
+  write('neg(false,true).\n'),
   repeat,
-    (show(F), write_show_clause(F),fail; true),!, 
+    (show(F), write_show_clause(F),fail; true),!,
+  repeat,
+    (explainRule(Head, Body), assert(explain), write_explain_rule(Head, Body),fail; true),!,
+  repeat,
+    (labelRule(LabelNumber, Label, Head, Body), write_label_rule(LabelNumber, Label, Head, Body),fail; true),!, 
   repeat,
     ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
   repeat,
-    ( rule(_C,H,B), writelist(['% ',H,' :- ',B]),nl,
+    ( rule(C,H,B), writelist(['% ',H,' :- ',B]),nl,
 	  set_count(varnum,0),
 	  t_rule(H,B,Rs),
 	  member(R,Rs),
 	  remove_quantifiers([],R,Rs1),
-	  lparse_divides(Rs1,Rs2),
-	  member(RR,Rs2),
-	  write_rule(RR),nl,
+	  member(RR,Rs1),
+	  write_rule(RR,C),nl,
 	  fail
 	; true),!.
 
@@ -24,6 +29,73 @@ write_show_clause(F/N) :-
        M is N+1,concat_atom(['holds_',F],G)      
      ; % a predicate
        concat_atom(['atom_',F],G),M=N),writelist(['#show ',G,'/',M,'.\n']).
+
+write_explain_rule(OHead, OBody) :-
+	t_rule(OHead, OBody, Rs),
+	member(R,Rs),
+	remove_quantifiers([],R,Rs1),
+	member(RR,Rs1),
+	
+	map_subterms(replacevars,[v/1,vaux/1],RR,Rule),
+	Rule=(Head :- B),
+    replace_not_eq(B,Body),
+
+    Head =.. [FiredName|ArgsAndValue],
+    concat_atom(['fired_',FName], FiredName),
+
+    %quitar esto en el futuro
+    append(Args, [_LastItem], ArgsAndValue),
+
+    % Preparing head
+    concat_atom(['explain_',FName], HeadFname),
+    PreparedHead =.. [HeadFname|Args],
+
+    % Preparing body
+    concat_atom(['holds_',FName], BodyFname),
+    append(Args, ['Value'], BodyArgs),
+    BodyF =.. [BodyFname|BodyArgs],
+    append(Body, [BodyF], PreparedBody),
+
+    binop(',',PreparedBody,PreparedBody2),
+    writelist([PreparedHead, ' :- ', PreparedBody2, '.\n']).
+
+
+write_label_rule(LabelNumber, Label, OHead, OBody) :-
+	t_rule(OHead, OBody, Rs),
+	member(R,Rs),
+	remove_quantifiers([],R,Rs1),
+	member(RR,Rs1),
+	
+	map_subterms(replacevars,[v/1,vaux/1],RR,Rule),
+	Rule=(Head :- B),
+    replace_not_eq(B,Body),
+
+    Head =.. [FiredName|ArgsAndValue],
+    concat_atom(['fired_',FName], FiredName),
+
+    % Parametros
+    append(AuxArgs, [_LastItem], ArgsAndValue),
+    append(AuxArgs, ['Value'], Args),
+    append(Args, [LabelNumber], AuxHeadArgs),
+
+    body_variables(Body, BodyVariables),
+
+    append(BodyVariables, AuxHeadArgs, HeadArgs),
+
+    % Preparing head
+    concat_atom(['label_',FName], HeadFname),
+    PreparedHead =.. [HeadFname|HeadArgs],
+
+    % Preparing body
+    concat_atom(['holds_',FName], BodyFname),
+    BodyF =.. [BodyFname|Args],
+    append(Body, [BodyF], PreparedBody),
+
+    binop(',',PreparedBody,PreparedBody2),
+    writelist([PreparedHead, ' :- ', PreparedBody2, '.\n']),
+
+    % Label info
+    assert(labelInfo(LabelNumber, AuxArgs, BodyVariables, Label)).
 
 %%% TERMS %%%%%%%%%%%%
 
@@ -52,13 +124,13 @@ t_term(A-B,vaux(AUXVAR),Gs) :-
 	append_all([[ATOM],As,Bs],Gs).
 
 t_term(A/B,vaux(AUXVAR),Gs) :-
-	!,newvar(AUXVAR),	t_term(A,A1,As), t_term(B,B1,Bs),
-	ATOM=divide(A1,B1,vaux(AUXVAR)),
+        !,newvar(AUXVAR),	t_term(A,A1,As), t_term(B,B1,Bs),
+        ATOM=(vaux(AUXVAR)=A1/B1),
 	append_all([[ATOM],As,Bs],Gs).
 
 t_term(A '\\ ' B,vaux(AUXVAR),Gs) :-
 	!,newvar(AUXVAR),	t_term(A,A1,As), t_term(B,B1,Bs),
-	ATOM=modulo(A1,B1,vaux(AUXVAR)),
+        ATOM=(vaux(AUXVAR)=A1 '\\ ' B1),
 	append_all([[ATOM],As,Bs],Gs).
 
 % functional terms
@@ -68,6 +140,18 @@ t_term(fterm(F,Args),vaux(AUXVAR),[G|Gs]):-
 	t_terms(Args,Args1,Gs),
 	append(Args1,[vaux(AUXVAR)],Args2),
 	concat_atom([holds_,F],F1),G =.. [F1|Args2].
+
+%t_term(neg(fterm(F,Args)),AUXVAR2,[G|Gs]):-
+%	newvar(AUXVAR),
+%	newvar(AUXVAR2),
+%	Negation = neg(AUXVAR,AUXVAR2),
+%	t_terms(Args,Args1,Gs),
+%	append(Args1,[vaux(AUXVAR)],Args2),
+%	concat_atom([holds_,F],F1),G =.. [F1|Args2].
+
+t_term(neg(Fterm),AUXVAR,[neg(AUXVAR2,AUXVAR)|Gs]) :-
+	newvar(AUXVAR),
+	t_term(Fterm,AUXVAR2,Gs).
 
 % A tuple of terms
 
@@ -83,31 +167,51 @@ t_terms([T|Ts],[S|Ss],Hs) :- t_term(T,S,Fs), t_terms(Ts,Ss,Gs), append(Fs,Gs,Hs)
 %      possibly existentially quantified
 
 t_atom(Term, ATOM ):- 
-	Term=.. [RELOP,T1,T2],member(RELOP,[(=),(=\=),(>),(<),(>=)]),!,
-    t_term(T1,S1,Fs1),
+	Term=.. [RELOP,T1,T2],member(RELOP,[(=),(=\=),(>),(<),(>=),(==)]),!,
+        t_term(T1,S1,Fs1),
 	t_term(T2,S2,Fs2),
 	append(Fs1,Fs2,Fs),
 	(RELOP=(=\=),!, A=(S1 '!=' S2)
+	; RELOP=(==),!, A=(S1 = S2)
 	; A =.. [RELOP,S1,S2]
 	),
-	subterms([vaux/1],A,AUXVARS),
+	subterms([vaux/1],[A|Fs],AUXVARS),
 	( AUXVARS=[],Fs=[],!,ATOM=A; ATOM=exists(AUXVARS,[A|Fs])).
+
+t_atom(defined(T),ATOM):-!,
+        t_term(T,_,Fs),
+	subterms([vaux/1],Fs,AUXVARS),
+	( AUXVARS=[],Fs=[],!,ATOM='#true'; ATOM=exists(AUXVARS,Fs)).
+			 
+t_atom(agg(exists,[Ts:B]), ATOM) :- !,
+        filter(isvar,Ts,Vs,NonVars),
+%%%% Option 1				    
+%	freevars(NonVars,Vs1),
+%	append(Vs,Vs1,Vs2),
+%%%% Option 2
+        Vs2=Vs,
 	
-t_atom(A,ATOM):- !, 
-	A =.. [P|Args], t_terms(Args,Args1,Fs), 
-	concat_atom(['atom_',P],P1),
-	A1 =.. [P1|Args1],
-	subterms([vaux/1],A1,AUXVARS),
-	( AUXVARS=[],!,ATOM=A1; ATOM=exists(AUXVARS,[A1|Fs])).	
+	findall(defined(NonVar),member(NonVar,NonVars),Dfs),
+	append(B,Dfs,B1),
+	t_body(B1,B2),
+        ATOM=exists(Vs2,B2).
+
+%t_atom(A,ATOM):- !, 
+%	A =.. [P|Args], t_terms(Args,Args1,Fs), 
+%	concat_atom(['atom_',P],P1),
+%	A1 =.. [P1|Args1],
+%	subterms([vaux/1],A1,AUXVARS),
+%	( AUXVARS=[],!,ATOM=A1; ATOM=exists(AUXVARS,[A1|Fs])).	
 
 % Lists of atoms
 t_atoms([],[]):-!.
 t_atoms([A|As],Hs):-t_atom(A,Fs), t_atoms(As,Gs),append(Fs,Gs,Hs).
 
+isvar(v(_)).
 
 %%% LITERALS  %%%%%%%%
 
-t_literal(not A, not F) :- !,t_atom(A,A1), (A1=[L],!,F=L; F=A1).
+t_literal(not A, not F) :- !,t_atom(A,A1),(A1=[L],!,F=L; F=A1).
 t_literal(A,A1) :- t_atom(A,A1).
 
 %%% BODIES %%%%%%%%%%%
@@ -136,10 +240,14 @@ t_rule(predic(A),B,[(A1 :- B2)]) :-
 	A1 =.. [P1 | Args1],
 	t_body(B,B1),
 	append(B1,Gs,B2).
-		
-% Assignment
+
+% Default assignment	
+t_rule(def_assign(Fterm,T),B,L) :-
+	!, t_rule(assign(Fterm,T),[not Fterm=\=T|B],L).
+
+%  Assignment
 t_rule(assign(fterm(F,Args),T),B,[(A1 :- B1)]) :-
-    concat_atom(['holds_',F],HOLDSF),
+    concat_atom(['fired_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	t_term(T,T1,Hs),
 	append(Args1,[T1],Args2),
@@ -163,7 +271,7 @@ t_rule(choice(fterm(F,Args),set(v(X),Cond)),B,[R1,R2,R3]) :-
 	map_subterms(replace_var,[v/1],Cond,Cond2),
 
     % Translate the head functional term
-    concat_atom(['holds_',F],HOLDSF),
+    concat_atom(['fired_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	append(Args1,[v(AUXVAR)],Args2),
 	A =.. [HOLDSF | Args2],
@@ -186,7 +294,7 @@ t_rule(choice(fterm(F,Args),set(List)),B,[R1,R2,R3|Rs]) :-
 	!,newvar(AUXVAR),
 	
     % Translate the head functional term
-    concat_atom(['holds_',F],HOLDSF),
+    concat_atom(['fired_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	append(Args1,[v(AUXVAR)],Args2),
 	A =.. [HOLDSF | Args2],
@@ -243,14 +351,12 @@ assert_choice_terms(C,AUXPRED,Vs,[T|Ts],Body):-
 	assertz(rule(C,predic(ATOM),Body)),
 	assert_choice_terms(C,AUXPRED,Vs,Ts,Body).
 
-
-
-
 %%% REMOVING QUANTIFIERS: new auxiliary predicates
 	
 freevars(v(X),[v(X)]):-!.
 freevars(vaux(X),[vaux(X)]):-!.
 freevars(exists(Vs,F),Ws):-!,freevars(F,Us),subtract(Us,Vs,Ws).
+freevars(agg(exists,[Vs,F]),Ws):-!,freevars(Vs,Vs2),freevars(F,Us),subtract(Us,Vs2,Ws).
 freevars(T,Vs):-
 	T =.. [_ | Args],!,
 	freevars_args(Args,Vs).
@@ -259,15 +365,25 @@ freevars_args([F|Fs],Vs):-freevars(F,Vs0),freevars_args(Fs,Vs1),merge_set(Vs0,Vs
 
 negative_formula(not _).
 negative_exists(not exists(_,_)).
+positive_exists(exists(_,_)).
 
+remove_quantifiers(Bp0,(H :- B),Rs):-
+    filter(positive_exists,B, BpE,B2),
+    BpE \= [],!,                          % We had positive exists formulas
+    remove_positive_exists(BpE,B1),
+    append(B1,B2,Body),
+    remove_quantifiers(Bp0,(H :- Body),Rs).
+    
 remove_quantifiers(Bp0,(H :- B),[(H :- Body) | Rs]):-
-    remove_positive_exists(B,B1),
-	filter(negative_formula,B1,Bn,Bp1),
-	filter(negative_exists,Bn,Bne,Bn1),
-	append(Bp0,Bp1,Bp),
-	neg_exists(Bp,Bne,Bne1,Rs),
-	append_all([Bp,Bn1,Bne1],Body).
-
+    filter(negative_exists,B,BnE,BwE),    % BwE = literals in B without exists
+    BnE \= [],!,                          % We had negative exists formulas
+    filter(negative_formula,BwE,Bn,Bp1),
+    append(Bp0,Bp1,Bp),
+    neg_exists(Bp,BnE,BnE1,Rs),
+    append_all([Bp,Bn,BnE1],Body).
+    
+remove_quantifiers(_,R,[R]).                % We had no quantifiers -> return rule untouched
+    
 remove_positive_exists([],[]):-!.
 remove_positive_exists([exists(_Vs,F)|B],B2):-!,remove_positive_exists(B,B1),append(F,B1,B2).
 remove_positive_exists([F|B],[F|B1]):-!,remove_positive_exists(B,B1).
@@ -282,38 +398,6 @@ neg_exists(Bp,[not exists(Vs,F)|Fs],[not A|Fs1],Rs):-
 	remove_quantifiers(Bp,Rule,Rs1),
 	append(Rs0,Rs1,Rs).
 
-%%% LPARSE DIVISIONS
-% The auxiliary 'divide' predicate must be made context dependent in order to avoid unsafe vars
-
-lparse_divides([],[]):-!.
-lparse_divides([(H :- B)|Rs],Us):-
-	filter(iscontext,B,Context,_),
-	freevars(Context,Vars),
-	body_divides(Context,Vars,B,B1,Ss),
-	lparse_divides(Rs,Ts),
-	append(Ss,[(H:-B1)|Ts],Us).
-
-iscontext(not _):-!,fail.
-iscontext(divide(_,_,_)):-!,fail.
-iscontext(modulo(_,_,_)):-!,fail.
-iscontext(_).
-
-body_divides(_Context,_Vars,[],[],[]):-!.
-body_divides(Context,Vars,[LIT|B],[DIVATOM|B1],[Rule1,Rule2|Rs]):-
-	divideop(LIT,X,Y,Z, RESULT),!,
-	newpred(DEFDIVIDE),	DEFDIVATOM =.. [DEFDIVIDE | Vars],
-	append(Context,[Y '!=' 0],Cond),
-	Rule1 = (DEFDIVATOM :- Cond),
-	newpred(DIVIDE), DIVATOM =.. [DIVIDE,X,Y,Z],
-	append(Context,[DEFDIVATOM, RESULT],Cond2),
-	Rule2 = (DIVATOM :- Cond2),
-	body_divides(Context,Vars,B,B1,Rs).
-	
-body_divides(Context,Vars,[Lit|B],[Lit|B1],Rs):-body_divides(Context,Vars,B,B1,Rs).
-
-divideop(divide(X,Y,Z),X,Y,Z,Z=X/Y).
-divideop(modulo(X,Y,Z),X,Y,Z,Z=(X '\\ ' Y)). % modulo
-
 %%% OTHER PREDICATES
 
 newvar(AUXVAR):-varnum(X),incr(varnum,1),concat_atom(['AUX',X],AUXVAR).
@@ -322,13 +406,98 @@ newpred(AUXPRED) :- prednum(N),incr(prednum,1), concat_atom(['aux',N],AUXPRED).
 replacevars(v(X),V):-concat_atom(['VAR',X],V).
 replacevars(vaux(X),X).
 
-write_rule(R) :-
+write_rule(R) :- 
 	map_subterms(replacevars,[v/1,vaux/1],R,R1),
 	R1=(H :- B),
-    replace_not_eq(B,B1),
+	replace_not_eq(B,B1),
 	(H = [],!; write(H)),
 	(B1=[],!; write(' :- '),binop(',',B1,B2),write(B2)),
 	write('.').
+
+% write_rule(Rule, Code)
+%	Writes the fired and holds rule for an input rule.
+%		- Rule: The translation of the original rule.
+%		- Code: format = Label/RuleNumber/LineNumber.
+
+% For restrictions
+write_rule(R, _Label/_RuleNum/_LineNum) :-
+	map_subterms(replacevars,[v/1,vaux/1],R,Rule),
+	Rule = (Head :- B),
+    replace_not_eq(B, Body),
+	
+	Head = [],!,
+	write(' :- '),
+	binop(',', Body, PreparedBody),
+	write(PreparedBody),
+	write('.'),nl.
+
+write_rule(R, Label/RuleNum/_LineNum) :-
+	map_subterms(replacevars,[v/1,vaux/1],R,Rule),
+	Rule = (Head :- B),
+    replace_not_eq(B, Body),
+	
+	% Head of fired rule
+	Head =.. [RuleFname | Args],
+	(
+		% auxiliary predicates
+		sub_string(RuleFname,_,3,_,"aux") ->
+		write(Head)
+	;
+		% Adding extra arguments
+		body_variables(Body, BodyVariables),
+		subtract(BodyVariables, Args, ExtraArgs),
+		append(ExtraArgs, Args, All),
+
+		% Write fired rule head
+		concat_atom(['fired_',RuleNum],FiredFname),
+		FiredHead =.. [FiredFname | All],
+		write(FiredHead)	
+	),
+	
+	% Body of fired rule
+	(
+		Body=[],!
+	;
+		write(' :- '),
+		binop(',', Body, PreparedBody),
+		write(PreparedBody)
+	),
+	write('.'),nl,
+
+	(
+		sub_string(RuleFname,_,3,_,"aux") ->
+		true
+	;
+		% Write holds rule
+		append(TrueArgs, [_Value], Args),
+		concat_atom(['fired_',Fname],RuleFname), 
+		write_holds(Fname, TrueArgs ,FiredHead),
+
+		% Saving rule info with the ruleNumber
+		append(FiredVarsNoValue, [_Value2], All),
+		OriginalTerm =.. [Fname|TrueArgs],
+
+		assert(ruleInfo(RuleNum, Label, OriginalTerm, FiredVarsNoValue, Body))
+	).
+
+% write_holds(Fname, FTrueArgs, FiredHead)
+%	Write the holds rule for a fired rule.
+%		- Fname: fname of the original function
+%		- FTrueArgs: arguments of the original function
+%		- FiredHead: Head of fired rule.
+write_holds(Fname, FTrueArgs, FiredHead) :-
+	% Head
+	concat_atom(['holds_',Fname], HoldsFname),
+	append(FTrueArgs, ['Value'], HoldsArgs),
+	Head =.. [HoldsFname | HoldsArgs],
+	
+	% Body
+	FiredHead =.. [FiredFname|FiredArgs],
+	append(FiredArgsNoValue, [_Value], FiredArgs),
+	append(FiredArgsNoValue, ['Value'], NewFiredArgs),
+	Body =.. [FiredFname|NewFiredArgs],
+
+	writelist([Head, ' :- ', Body, '.']).
 
 replace_not_eq([],[]):-!.
 replace_not_eq([not (A=B)|Ls],[A '!=' B|Ms]):-!,replace_not_eq(Ls,Ms).
@@ -348,3 +517,30 @@ uniquevalue(F/N,R):-
 vartuple(0,[]):-!.
 vartuple(N,[V|Vs]):-newvar(V),M is N-1, vartuple(M,Vs).
 
+% body_variables(Body, Arguments)
+%	Return all 'holds predicates arguments' (not the value) for a given translated body.
+body_variables([HTerm|Tail], Arguments) :-
+	HTerm =.. [=|Args],
+
+	% Not compounds
+	findall(A, (member(A,Args), compound(A)), Compounds),
+	Compounds = [],!,
+	
+	findall(A, (member(A,Args), concat_atom(['VAR',_],A)), Vars),
+	body_variables(Tail, MoreArguments),
+	merge_set(Vars, MoreArguments, Arguments).
+
+
+body_variables([HTerm|Tail], Arguments) :-
+	HTerm =.. [Fname|_Args],
+	\+ concat_atom(['holds_',_F],Fname),
+	body_variables(Tail, Arguments).
+
+body_variables([HTerm|Tail], Arguments) :-
+	HTerm =.. [Fname|ArgsAndValue],
+	concat_atom(['holds_',_F],Fname),!,
+	append(Args, [_Value], ArgsAndValue),
+	body_variables(Tail, MoreArgs),
+	merge_set(Args, MoreArgs, Arguments).
+
+body_variables([],[]).

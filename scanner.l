@@ -11,7 +11,7 @@ extern int yyerror(char *);
 DIGIT    [0-9]
 PID      [a-z][a-zA-Z0-9_]*"'"
 ID       [a-z][a-zA-Z0-9_]*
-VID      [A-Z][a-zA-Z0-9_]*
+VID      _?[A-Z][a-zA-Z0-9_]*
 STRING   "\""[^\"]*"\""
 
 %%
@@ -20,14 +20,19 @@ abs		{ return ABS; }
 in		{ return IN; }
 not		{ return NOT; }
 or		{ return OR; }
-"#function" {return FUNCTION;}
+"#sum" 	        {return SUM; }
+"#function"     {return FUNCTION;}
+"#choose"       {return CHOOSE;}
 
+"::"		{ return LABEL;}
 ":-"		{ return IF; }
 ".."		{ return DOTS; }
 ":="		{ return ASSIGN; }
-"\\E"		{ return EXISTS; }
-"#show"         { return SHOW; }
-"\\forsome"		{ return FORSOME; }
+"^="		{ return DEFVALUE; }
+"#exists"	{ return EXISTS; }
+"#show"     { return SHOW; }
+"#explain"		{ return EXPLAIN; }
+"#label"		{ return LABELRULE; }
 
 ">="		{ return GEQ; }	
 "<="		{ return LEQ; }	
