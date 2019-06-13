@@ -105,6 +105,7 @@ writefact(Term):-
 		assert(label(FiredTerm, LabelFired))
 
 	; 
+		opt(facts_output),
 	  	% Holds rules
 	  	Term =.. [F|Args],
 	    functor_prefix(F,holds_,F2),!,

@@ -50,6 +50,7 @@ main([]):- !,
   write('  -t             just print the translation of functions into predicates.'),nl,
   write('  -l             just print causes of labeled rules.'),nl,
   write('  -r, --report   builds an html report with graphs.'),nl,
+  write('  -f, --facts    lppf will return the list of the concluded facts in addition to the explanations'),nl,
   (opt(nohalt),!; halt(0)).
 
 main(Args):-
@@ -92,6 +93,8 @@ option('-l',labels).
 option('-m',minimal_explanations).
 option('-r',report).
 option('--report',report).
+option('-f', facts_output).
+option('--facts', facts_output).
 
 header :-
   write(' Logic Programs with Partial Functions 2.0'),nl,
