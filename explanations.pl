@@ -471,8 +471,11 @@ writeReport :-
 		  	writelist(['Making html report',N]),
 		  	makeReport,nl,
 
-		  	concat_atom(['sensible-browser ', CompletePath, '/', CompletePath, '.html &'], Command),
-		  	shell(Command)
+		  	(
+			  	\+ opt(static_report),
+			  	concat_atom(['sensible-browser ', CompletePath, '/', CompletePath, '.html &'], Command),
+			  	shell(Command)
+		  	)
 	  	)
 	; 
 		write('Report cant be written'),nl
