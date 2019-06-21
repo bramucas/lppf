@@ -19,6 +19,9 @@ show_next_solution:-
 	 	opt(report),!,
 	 	writeReport
 	 ;
+	 	opt(static_report),!,
+	 	writeReport
+	 ;
 	 	writeCauses
 	 ),
 	
