@@ -1,10 +1,57 @@
-<div class="col-sm-12 col-md-12" >
-    <div id="#Term#" class="thumbnail">
-        <a class="lightbox" target="_blank" href="#ImagePath#">
-            <img src="#ImagePath#" alt="Graph" > 
-        </a>
-        <div class="caption">
-            <h2>#Term#</h2>
-        </div>
-    </div>
-</div>
+<div id="#GraphId#" style="height: 400px" class="col-sm-12 col-md-12 thumbnail" ></div>
+<script type="text/javascript">
+        // based on prepared DOM, initialize echarts instance
+        var myChart = echarts.init(document.getElementById("#GraphId#"));
+
+        // use configuration item and data specified to show chart
+        myChart.setOption(option = {
+
+        title: {
+            text:"#Title#",
+        },
+
+        tooltip: {
+            trigger: 'item',
+            triggerOn: 'mousemove'
+        },
+
+        series:[
+            {
+                type: 'tree',
+                symbolSize: 20,
+                data: #GraphData#,
+
+                left: '2%',
+                right: '2%',
+                top: '20%',
+                bottom: '8%',
+
+                symbol: 'emptyCircle',
+
+                orient: 'BT',
+
+                expandAndCollapse: true,
+
+                label: {
+                        position: 'bottom',
+                        rotate: 0,
+                        verticalAlign: 'middle',
+                        align: 'center',
+                        fontSize: 15
+                },
+
+                leaves: {
+
+                    label: {
+                            position: 'top',
+                            rotate: 0,
+                            verticalAlign: 'middle',
+                            align: 'center'
+                    }
+                },
+
+                animationDurationUpdate: 750
+            }
+        ]
+    });
+    </script>
