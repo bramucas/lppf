@@ -1,4 +1,4 @@
-:- dynamic toExplain/1.
+:- dynamic toExplain/1, graphId/1.
 %%%%%%%%%%%%% Causes search %%%%%%%%%%%%%%
 
 
@@ -449,10 +449,7 @@ writeBirth(Level) :-
 
 
 
-
-
-
-%%%%%%%%%%%%% HTML report output %%%%%%%%%%%%%
+%%%%%%%%%%% HTML report output ECharts %%%%%%%%%%%%
 
 writeReport :-
 	(
@@ -465,8 +462,8 @@ writeReport :-
 	  	makeGraphs,nl,
 
 	  	(
-	  		\+ current_predicate(graphPath/5),
-	  		nl, write('Wrong explain sentences'), nl
+	  		\+ current_predicate(graphData/5),
+	  		nl, write('Error making graphs'), nl
 	  	;
 		  	writelist(['Making html report',N]),
 		  	makeReport,nl,
@@ -507,11 +504,11 @@ makeReport :-
 
 	repeat,
 	(
-		graphPath(Term, Value, Label, _RuleNumber ,JpgFileName),
+		graphData(Term, Value, Label, _RuleNumber, Data),
 
 		htmlReportRowTemplate(HtmlRowTemplate),
 
-		replaceString(HtmlRowTemplate, '#ImagePath#', JpgFileName, AuxString),
+		replaceString(HtmlRowTemplate, '#GraphData#', Data, AuxString),
 		(
 			Label = no_label ->
 			term_to_atom(Term, WTerm),
@@ -521,7 +518,14 @@ makeReport :-
 			concat_atom([WLabel], Title)
 		),
 		
-		replaceString(AuxString, '#Term#', Title, Row),
+		% replace title token
+		replaceString(AuxString, '#Title#', Title, AuxString2),
+
+		% replce term token
+		incr(graphId, 1),
+		graphId(GraphId),
+		concat_atom([GraphId, '_', Title], TermToken),
+		replaceString(AuxString2, '#GraphId#', TermToken, Row),
 
 		assert(reportRow(Row)),
 		write('.'),flush_output(),
@@ -575,87 +579,52 @@ makeGraphs :-
 ).
 
 makeGraph(Term, Label, Value, RuleNumber, Causes) :-
-	numsol(N),
+	(
+		Label = no_label ->
+		term_to_atom(Term, WriteTerm),
+		concat_atom(['', WriteTerm, ' = ', Value ,''], ItemName)
+	;
+		term_to_atom(Label, WriteTerm),
+		concat_atom([WriteTerm, ''], ItemName)
+	),
 
-	% Create and open file
-	term_to_atom(Term, WTerm),
-	concat_atom(['report',N,'/', WTerm] ,DirectoryName),
-	makeDirectory(DirectoryName),
+	% Build children graph data
+	childrenData(Causes, Children),
 
-	concat_atom([DirectoryName, '/', RuleNumber, '.dot'], FileName),
-	open(FileName, write, FileStream),
+	% Build Item Graph data
+	concat_atom(['[ { name: "', ItemName, '", children:[', Children, '] }, ]'], Data),
 
-	% Writting dot file
-	write(FileStream, 'digraph {\n rankdir = "TB";\n node [style=filled, color=black];\n'),
-	buildEdges(FileStream, Term, Label, Value, Causes),
-	write(FileStream, '}'),
-	close(FileStream),
-
-	% Creating image
-	concat_atom([DirectoryName, '/', RuleNumber, '.jpg'], JpgFileName),
-	concat_atom(["dot -Tjpg '", FileName,"' > '", JpgFileName, "'"], Command),
-	shell(Command),
-
-	% Saving path
-	concat_atom([WTerm, '/', RuleNumber, '.jpg'], RelativeImagePath),
-	assert(graphPath(Term, Value, Label, RuleNumber, RelativeImagePath)),
+	assert(graphData(Term, Value, Label, RuleNumber, Data)),
 	write('.'),flush_output().
 
-buildEdges(FileStream, Term, Label, Value, [HCause | Tail]) :-
-	HCause =.. [cause|[CTerm, CLabel, CValue, _RuleNumber, CTermCauses]],
+
+childrenData([Item|Tail], Data) :- 
+	Item =.. [cause|[Term, Label, Value, _RuleNumber, Causes]],
 
 	(
 		Label = no_label ->
-		term_to_atom(Term, WTerm),
-		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="lightgrey"];\n'], Color),
-		write(FileStream, Color),!
+		term_to_atom(Term, WriteTerm),
+		concat_atom(['', WriteTerm, ' = ', Value ,''], ItemName)
 	;
-		term_to_atom(Label, WTerm),
-		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="gold2"];\n'], Color),
-		write(FileStream, Color),!
+		term_to_atom(Label, WriteTerm),
+		concat_atom([WriteTerm, ''], ItemName)
 	),
-	(
-		CLabel = no_label ->
-			term_to_atom(CTerm, WCTerm),!	
-	;
-		term_to_atom(CLabel, WCTerm),!
-	),
-	
-	concat_atom(['"', WCTerm, '=', CValue, '" -> "', WTerm, '=', Value, '";\n'], GraphLine),
-	write(FileStream, GraphLine),
-	
-	buildEdges(FileStream, CTerm, CLabel, CValue, CTermCauses),
-	buildEdges(FileStream, Term, Label, Value, Tail).
 
-buildEdges(FileStream, Term, Label, Value, is_leaf) :-
-	(
-		Label = no_label ->
-		term_to_atom(Term, WTerm),
-		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="lightgrey"];\n'], Color),
-		write(FileStream, Color),!
-	;
-		term_to_atom(Label, WTerm),
-		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="gold2"];\n'], Color),
-		write(FileStream, Color),!
-	),
-	
-	concat_atom(['"', WTerm, '=', Value, '";\n'], GraphLine),
-	write(FileStream, GraphLine).
+	% This item causes
+	childrenData(Causes, Children),
 
-buildEdges(FileStream, Term, Label, Value, []) :-
-	(
-		Label = no_label ->
-		term_to_atom(Term, WTerm),
-		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="lightgrey"];\n'], Color),
-		write(FileStream, Color),!
-	;
-		term_to_atom(Label, WTerm),
-		concat_atom(['"', WTerm, '=', Value, '" [fillcolor="gold2"];\n'], Color),
-		write(FileStream, Color),!
-	),
-	
-	concat_atom(['"', WTerm, '=', Value, '";\n'], GraphLine),
-	write(FileStream, GraphLine).
+	% Other causes graph data
+	childrenData(Tail, OtherItems),
+
+	% Build this item graph data
+	concat_atom(['{ name:"', ItemName, '", children : [', Children, '] },'], ItemData),
+
+	concat_atom([ItemData, OtherItems], Data).
+
+childrenData(is_leaf, '').
+childrenData([], '').
+
+
 
 
 makeDirectory(Path) :-
@@ -664,7 +633,6 @@ makeDirectory(Path) :-
 makeDirectory(Path) :-
 	\+ exists_directory(Path),
 	make_directory(Path).
-
 
 
 %%%%%%%%%%%%% Equivalent explanations %%%%%%%%%%%%%
