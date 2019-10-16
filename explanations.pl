@@ -451,11 +451,25 @@ writeBirth(Level) :-
 
 %%%%%%%%%%% HTML report output ECharts %%%%%%%%%%%%
 
+makeReportDir :-
+	opt(outfile(OutFile)),
+	makeDirectory(OutFile).
+
+makeReportDir :-
+	\+ opt(outfile(_)).
+
+
 writeReport :-
 	(
 	  current_predicate(cause/5) ->
 	  	numsol(N),
-	  	concat_atom(['report',N], CompletePath),
+	  	(
+		opt(outfile(OutFile)) ->
+	  		concat_atom([OutFile, '/'], OutDir)
+	  	;
+  			OutDir = ''
+	  	),
+	  	concat_atom([OutDir,'report',N], CompletePath),
 	  	makeDirectory(CompletePath),
 
 	  	write('Making graphs'),
@@ -470,6 +484,7 @@ writeReport :-
 
 		  	(
 			  	\+ opt(static_report),
+			  	\+ opt(outfile(_)),
 			  	concat_atom(['sensible-browser ', CompletePath, '/', CompletePath, '.html &'], Command),
 			  	shell(Command)
 		  	)
@@ -483,10 +498,16 @@ makeReport :-
 	concat_atom(['report',N], ReportName),
 
 	% Copy resources
-	concat_atom([ReportName,'/.resources'], ResDirectory),
+  	(
+		opt(outfile(OutFile)) ->
+		concat_atom([OutFile, '/'], OutDir)
+	;
+		OutDir = ''
+	),
+	concat_atom([OutDir, ReportName,'/.resources'], ResDirectory),
 	copy_directory('reportTemplate/resources', ResDirectory),
 
-	concat_atom([ReportName,'/',ReportName,'.html'], ReportFileName),
+	concat_atom([OutDir, ReportName,'/',ReportName,'.html'], ReportFileName),
 	open(ReportFileName, write, ReportFile),
 	
 	htmlReportTemplate(HtmlReportTemplate),

@@ -17,9 +17,11 @@ show_next_solution:-
 	 skipEquivalentExplanations,
 	 (
 	 	opt(report),!,
+	 	makeReportDir,
 	 	writeReport
 	 ;
 	 	opt(static_report),!,
+	 	makeReportDir,
 	 	writeReport
 	 ;
 	 	writeCauses
