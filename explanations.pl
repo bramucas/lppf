@@ -1,4 +1,7 @@
 :- dynamic toExplain/1, graphId/1.
+
+
+
 %%%%%%%%%%%%% Causes search %%%%%%%%%%%%%%
 
 
@@ -9,11 +12,17 @@ findCauses :-
 	repeat,
 	(
 		fired(RuleNumber, ArgValues),
-		ruleInfo(RuleNumber, Label, OriginalTerm, VarNames, []),
+		ruleInfo(RuleNumber, OriginalLabel, OriginalTerm, VarNames, []),
 
 		replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),
 
-		processLabel(Label, TermFired, ArgValues, VarNames, LabelFired),
+		% Automatically label no-labeled-facts if option label facts is active
+		(
+			OriginalLabel = no_label, opt(label_facts) ->
+				LabelFired = TermFired
+			;
+				processLabel(OriginalLabel, TermFired, ArgValues, VarNames, LabelFired)
+		),
 
 		append(_Args2, [ValueFired], ArgValues),
 
@@ -67,7 +76,7 @@ getCauses(ArgValues, VarNames, Body, TrimmedCauses) :-
 	simplifyBody(Body, SimplifiedBody),
 	replaceValues(ArgValues, VarNames, SimplifiedBody, Result),
 	(
-	opt(labels) ->
+	\+ opt(complete) ->
 		evaluateCausesLabels(Result, Causes0),
 		trimCausesLabels(Causes0, Causes)
 	;
@@ -96,7 +105,7 @@ evaluateCauses([HTerm|Tail], MoreCauses) :-
 
 evaluateCauses([],[]).
 
-% Special version of evaluateCauses that skips a cause if it has no label.
+% If cause has not label
 evaluateCausesLabels([HTerm|Tail], MoreCauses) :-
 	current_predicate(cause/5),
 	cause(HTerm, no_label, _Value, _RuleNumber, TermCauses),!,
@@ -108,6 +117,7 @@ evaluateCausesLabels([HTerm|Tail], MoreCauses) :-
 		append(TermCauses, TailCauses, MoreCauses)
 	).
 
+% If cause has label
 evaluateCausesLabels([HTerm|Tail], [Cause|MoreCauses]) :-
 	current_predicate(cause/5),
 	cause(HTerm, Label, Value, RuleNumber, TermCauses),
@@ -358,6 +368,7 @@ writeCauseTree(Term, no_label, Value, Causes, Level) :-
 		true
 	),
 
+
 	% Node Term and value
 	% If it is a boolean value change the output format
 	(	
@@ -402,7 +413,7 @@ writeCauseTree(Term, Label, Value, Causes, Level) :-
 
 	% Node Term and value
 	(
-		opt(labels) ->
+		\+ opt(complete) ->
 			true
 	;
 		% If it is a boolean value change the output format
@@ -596,8 +607,8 @@ makeGraphs :-
 			makeGraph(Term, Label, Value, RuleNumber, Causes), 
 			fail
 		;	true
-	),!
-).
+		),!
+	).
 
 makeGraph(Term, Label, Value, RuleNumber, Causes) :-
 	(
@@ -656,10 +667,12 @@ makeDirectory(Path) :-
 	make_directory(Path).
 
 
+
 %%%%%%%%%%%%% Equivalent explanations %%%%%%%%%%%%%
 
+% Cuando es sin labels
 skipEquivalentExplanations :-
-	\+ opt(labels),!,
+	opt(complete),!,
 	current_predicate(cause/5),
 	repeat,
 	(
@@ -670,8 +683,9 @@ skipEquivalentExplanations :-
 	;	true
 	),!.
 
+% Cuando es con labels pero sin minimal
 skipEquivalentExplanations :-
-	opt(labels),
+	\+ opt(complete),
 	\+ opt(minimal_explanations),!,
 	current_predicate(cause/5),
 	repeat,
@@ -684,8 +698,9 @@ skipEquivalentExplanations :-
 	;	true
 	),!.
 
+% Cuando es con labels y con minimal
 skipEquivalentExplanations :-
-	opt(labels),
+	\+ opt(complete),
 	opt(minimal_explanations),!,
 	current_predicate(cause/5),
 	repeat,
