@@ -48,10 +48,13 @@ main([]):- !,
   write('  -o <filename>  output file.'),nl,
   write('  -q             supresses information header and messages.'),nl,
   write('  -t             just print the translation of functions into predicates.'),nl,
-  write('  -all           includes all the information about the derivation in the explanations.'),nl,
   write('  -r, --report   builds an html report with graphs.'),nl,
   write('  -sr            builds the report but does not open it automatically.'),nl,
-  write('  -f, --facts    lppf will return the list of the concluded facts in addition to the explanations.'),nl,
+  write('  -f, --facts    prints the list of the concluded facts in addition to the explanations.'),nl,
+  write('  Verbosity modes:'),nl,
+  write('     --verbose 1:                explanations only include labels (this is the default mode).'),nl,
+  write('     --verbose 2, --labelFacts:  automatically labels all non-labeled facts in the program.'),nl,
+  write('     --verbose 3, --complete:    inludes all the information about the derivation in the explanations.'),nl,
   (opt(nohalt),!; halt(0)).
 
 main(Args):-
@@ -82,25 +85,34 @@ checkoptions([X|Xs],Ys):-
 	  ; X='-o',!, Xs=[File|Zs],
 	    asserta(opt(outfile(File))),checkoptions(Zs,Ys)
 	  ; X='-n',!,Xs=[N|Zs],
-	    asserta(opt(nummodels(N))),checkoptions(Zs,Ys).
+	    asserta(opt(nummodels(N))),checkoptions(Zs,Ys)
+	  ; X='--verbose',!,Xs=[N|Zs],
+	  	concat_atom(['verbose ', N], VerboseOption),
+	  	option(VerboseOption, Opt),
+	    asserta(opt(Opt)),checkoptions(Zs,Ys).
 			    
 checkoptions([X|Xs],[X|Ys]):- checkoptions(Xs,Ys).
+
 
 option('-q',quiet).
 option('-v',debug).
 option('-t',translation).
 option('--nohalt',nohalt).
 
-option('-m',minimal_explanations).
+option('-m',minimal_explanations). /* Desuse? */
+
+/* Report options */
 option('-r',report).
-option('-sr',static_report).
 option('--report',report).
+option('-sr',static_report).
 
 option('-f', facts_output).
 option('--facts', facts_output).
+/* Verbosity modes */
 option('--complete',complete).
+option('verbose 3', complete).
 option('--labelFacts',label_facts).
-
+option('verbose 2', label_facts).
 
 header :-
   write(' Logic Programs with Partial Functions 2.0'),nl,
