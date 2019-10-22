@@ -48,7 +48,7 @@ main([]):- !,
   write('  -o <filename>  output file.'),nl,
   write('  -q             supresses information header and messages.'),nl,
   write('  -t             just print the translation of functions into predicates.'),nl,
-  write('  -l             just print causes of labeled rules.'),nl,
+  write('  -all           includes all the information about the derivation in the explanations.'),nl,
   write('  -r, --report   builds an html report with graphs.'),nl,
   write('  -sr            builds the report but does not open it automatically.'),nl,
   write('  -f, --facts    lppf will return the list of the concluded facts in addition to the explanations.'),nl,
@@ -90,13 +90,17 @@ option('-q',quiet).
 option('-v',debug).
 option('-t',translation).
 option('--nohalt',nohalt).
-option('-l',labels).
+
 option('-m',minimal_explanations).
 option('-r',report).
 option('-sr',static_report).
 option('--report',report).
+
 option('-f', facts_output).
 option('--facts', facts_output).
+option('--complete',complete).
+option('--labelFacts',label_facts).
+
 
 header :-
   write(' Logic Programs with Partial Functions 2.0'),nl,
