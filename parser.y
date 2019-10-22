@@ -80,7 +80,7 @@ char  	*strval; /* For returning a string */
 %left '-' '+'
 %left '*' '/' '\\'
 %left UMINUS     /* unary minus */
-%left '~'
+
 
 /* Grammar follows */
 
@@ -132,7 +132,7 @@ label:
 
 atom :
     fterm		        {$$=strCat($1,"==fterm(true,[])",NULL);}
-  | '~' fterm                   {$$=strCat($2,"==fterm(false,[])",NULL);}
+  | '-' fterm       {$$=strCat($2,"==fterm(false,[])",NULL);}
   | term '=' term		{$$=strCat($1,"=",$3,NULL);}
   | term NEQ term		{$$=strCat($1,"=\\=",$3,NULL);}
   | term '>' term		{$$=strCat($1,">",$3,NULL);}
@@ -166,7 +166,7 @@ body :
 
 head :
     fterm         {{$$=strCat("assign(",$1,", fterm(true,[]))",NULL);}}
-  | '~' fterm         {{$$=strCat("assign(",$2,", fterm(false,[]))",NULL);}}
+  | '-' fterm         {{$$=strCat("assign(",$2,", fterm(false,[]))",NULL);}}
   | fterm ASSIGN term	{$$=strCat("assign(",$1,",",$3,")",NULL);}
   | fterm DEFVALUE term {$$=strCat("def_assign(",$1,",",$3,")",NULL);}
   | fterm ASSIGN CHOOSE set		{$$=strCat("choice(",$1,",",$4,")",NULL);}
@@ -207,7 +207,6 @@ aterm :
   | ABS '(' term ')'	{$$=strCat("abs(",$3,")",NULL);}
   | '|' term '|'		{$$=strCat("abs(",$2,")",NULL);}
   | '-' term  %prec UMINUS  {$$=strCat("(0-",$2,")",NULL);}
-  | '~' term        {$$=strCat("neg(",$2,")",NULL);}
   ;
   
 termlist :
