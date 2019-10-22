@@ -52,9 +52,9 @@ main([]):- !,
   write('  -sr            builds the report but does not open it automatically.'),nl,
   write('  -f, --facts    prints the list of the concluded facts in addition to the explanations.'),nl,
   write('  Verbosity modes:'),nl,
-  write('     --verbose 1:                explanations only include labels (this is the default mode).'),nl,
-  write('     --verbose 2, --labelFacts:  automatically labels all non-labeled facts in the program.'),nl,
-  write('     --verbose 3, --complete:    inludes all the information about the derivation in the explanations.'),nl,
+    write('     --verbose 1:  explanations only include labels (this is the default mode).'),nl,
+  write('     --verbose 2:  automatically labels all non-labeled facts in the program.'),nl,
+  write('     --verbose 3:  inludes all the information about the derivation in the explanations.'),nl,
   (opt(nohalt),!; halt(0)).
 
 main(Args):-
@@ -67,7 +67,7 @@ main(Args):-
 	(opt(nohalt),!; halt(0)).
 
 get_solutions(File,N):-
-    	concat_atom(['clingo --verbose=0 ',N,' ',File,' > lppf.2.tmp'],Command),
+    concat_atom(['clingo --verbose=0 ',N,' ',File,' > lppf.2.tmp'],Command),
 	shell(Command,_),
 	see('lppf.2.tmp'),
 	(\+ opt(report), \+ opt(static_report),opt(outfile(F)),!,tell(F); true),
@@ -108,10 +108,13 @@ option('-sr',static_report).
 
 option('-f', facts_output).
 option('--facts', facts_output).
+
 /* Verbosity modes */
-option('--complete',complete).
+option('verbose 0', no_explanations).
+option('verbose 1', default).
+%option('--complete',complete).
 option('verbose 3', complete).
-option('--labelFacts',label_facts).
+%option('--labelFacts',label_facts).
 option('verbose 2', label_facts).
 
 header :-
