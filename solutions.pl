@@ -5,44 +5,24 @@ display_solutions(NSol):-
 	show_next_solution,numsol(NSol).
 	
 show_next_solution:-
-        gettoken([0' ,10],T,D),!,
+	gettoken([0' ,10],T,D),!,
 	(T='UNSATISFIABLE',!
 	;T='SATISFIABLE',!
 	;incr(numsol,1), numsol(N), 
-	 writelist(['Answer:',N]),nl,
-	 atom_to_term(T,Term,_),writefact(Term),
+	 nl,writelist(['Answer:',N,'\n--------------------']),nl,
+	 atom_to_term(T,Term,_),process_fact(Term),
 	 (D=0' ,!,get_next_fact; true),
 	 nl,
-	 findCauses,
-	 skipEquivalentExplanations,
-	 (
-	 	opt(report),!,
-	 	makeReportDir,
-	 	writeReport
-	 ;
-	 	opt(static_report),!,
-	 	makeReportDir,
-	 	writeReport
-	 ;
-	 	writeCauses
-	 ),
-	
-	retractall(explainCount(_C)),
-	retractall(fired(_RN1, _V1)),
-	retractall(justExplain(_ET)),
-	retractall(graphPath(_T, _V2, _L1, _RN2, _RIP)),
-	retractall(cause(_TF, _LF, _VF, _RN3, _L2)),
-	retractall(reportRow(_R)),	
-	retractall(toExplain(_Expl)),
-	retractall(label(_FT, _LF2)),
 
-	 show_next_solution,nl,nl
+	 (\+ opt(no_explanations), explain_solution; true),
+	 
+	 show_next_solution,nl
 	).
 show_next_solution.	
 
 get_next_fact :-
 	gettoken([0' ,10],T,D),!,
-	atom_to_term(T,Term,_),writefact(Term),
+	atom_to_term(T,Term,_),process_fact(Term),
 	(D=0' ,!,get_next_fact; true).
 
 gettoken(Delims,Tok,Delim):-
@@ -63,7 +43,7 @@ functor_prefix(F,Pref,Rest):-
 commas_to_list((A,B), [A|B1]) :- !,commas_to_list(B,B1).
 commas_to_list(A,[A]).
 
-writefact(Term):-
+process_fact(Term):-
 	(   
 		Term =.. [F|_], functor_prefix(F,aux,_),!   	% ignore auxiliary atoms
 	;	Term =.. [F|_], functor_prefix(F,nholds,_),!	% ignore auxiliary atoms
@@ -110,7 +90,7 @@ writefact(Term):-
 		assert(label(FiredTerm, LabelFired))
 
 	; 
-		opt(facts_output),
+		opt(no_explanations),
 	  	% Holds rules
 	  	Term =.. [F|Args],
 	    functor_prefix(F,holds_,F2),!,
@@ -119,11 +99,11 @@ writefact(Term):-
 		% If it is a boolean value change the output format
 		(	
 		  Value = true  -> 
-			writelist([Term2,'.']),nl
+			writelist(['  ', Term2,'.']),nl
 		; Value = false -> 
-			writelist(['~',Term2,'.']),nl
+			writelist(['  ','~',Term2,'.']),nl
 		;	
-			writelist([Term2,'=',Value,'.']),nl	
+			writelist(['  ',Term2,'=',Value,'.']),nl	
 		)
 	  ; 
 	  	opt(debug),!,
@@ -131,3 +111,27 @@ writefact(Term):-
 	  ; 
 	  	true
 	).
+
+explain_solution :- 
+	findCauses,
+	skipEquivalentExplanations,
+	(
+		opt(report),!,
+		makeReportDir,
+		writeReport
+	;
+		opt(static_report),!,
+		makeReportDir,
+		writeReport
+	;
+		writeCauses
+	),
+
+	retractall(explainCount(_C)),
+	retractall(fired(_RN1, _V1)),
+	retractall(justExplain(_ET)),
+	retractall(graphPath(_T, _V2, _L1, _RN2, _RIP)),
+	retractall(cause(_TF, _LF, _VF, _RN3, _L2)),
+	retractall(reportRow(_R)),	
+	retractall(toExplain(_Expl)),
+	retractall(label(_FT, _LF2)).

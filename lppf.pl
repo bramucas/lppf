@@ -50,9 +50,9 @@ main([]):- !,
   write('  -t             just print the translation of functions into predicates.'),nl,
   write('  -r, --report   builds an html report with graphs.'),nl,
   write('  -sr            builds the report but does not open it automatically.'),nl,
-  write('  -f, --facts    prints the list of the concluded facts in addition to the explanations.'),nl,
   write('  Verbosity modes:'),nl,
-    write('     --verbose 1:  explanations only include labels (this is the default mode).'),nl,
+  write('     --verbose 0:  ignores labels and #explain sentences. Does not produce explanations.'),nl,
+  write('     --verbose 1:  explanations only include labels (this is the default mode).'),nl,
   write('     --verbose 2:  automatically labels all non-labeled facts in the program.'),nl,
   write('     --verbose 3:  inludes all the information about the derivation in the explanations.'),nl,
   (opt(nohalt),!; halt(0)).
@@ -105,9 +105,6 @@ option('-m',minimal_explanations). /* Desuse? */
 option('-r',report).
 option('--report',report).
 option('-sr',static_report).
-
-option('-f', facts_output).
-option('--facts', facts_output).
 
 /* Verbosity modes */
 option('verbose 0', no_explanations).

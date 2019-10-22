@@ -337,7 +337,7 @@ writeCauses :-
 				),
 
 				explainCount(ExplainCount),
-				writelist([ExplainCount, ' ocurrences explained.']),nl,
+				writelist([ExplainCount, ' ocurrences explained.']),nl,nl,
 				!
 		  	  	)
 		  	;
