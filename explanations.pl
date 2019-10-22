@@ -241,7 +241,6 @@ orderedAuxVarNames([],[]).
 
 % Text labels
 
-replaceAllReferences(_, [], _, NaturalExplanation, NaturalExplanation).
 replaceAllReferences([], _, _, NaturalExplanation, NaturalExplanation).
 replaceAllReferences(_, _, [], NaturalExplanation, NaturalExplanation).
 
