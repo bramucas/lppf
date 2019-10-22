@@ -24,6 +24,7 @@ translate :-
 	  	\+ opt(no_explanations),
 	  	write_rule(RR,C),nl
 	  ;
+	  	opt(no_explanations),
 	  	write_rule(RR),nl
 	  ),
 	  fail
@@ -448,6 +449,10 @@ write_rule(R, Label/RuleNum/_LineNum) :-
 		sub_string(RuleFname,_,3,_,"aux") ->
 		write(Head)
 	;
+		% nholds choice predicates
+		sub_string(RuleFname,_,6,_,"nholds") ->
+		write(Head)
+	;
 		% Adding extra arguments
 		body_variables(Body, BodyVariables),
 		subtract(BodyVariables, Args, ExtraArgs),
@@ -472,6 +477,9 @@ write_rule(R, Label/RuleNum/_LineNum) :-
 	(
 		sub_string(RuleFname,_,3,_,"aux") ->
 		true
+	;
+		sub_string(RuleFname,_,6,_,"nholds") ->
+		true	
 	;
 		% Write holds rule
 		append(TrueArgs, [_Value], Args),
