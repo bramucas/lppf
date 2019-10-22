@@ -8,9 +8,9 @@ translate :-
   repeat,
     (show(F), write_show_clause(F),fail; true),!,
   repeat,
-    (explainRule(Head, Body), assert(explain), write_explain_rule(Head, Body),fail; true),!,
+    (\+ opt(no_explanations), explainRule(Head, Body), assert(explain), write_explain_rule(Head, Body),fail; true),!,
   repeat,
-    (labelRule(LabelNumber, Label, Head, Body), write_label_rule(LabelNumber, Label, Head, Body),fail; true),!, 
+    (\+ opt(no_explanations), labelRule(LabelNumber, Label, Head, Body), write_label_rule(LabelNumber, Label, Head, Body),fail; true),!, 
   repeat,
     ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
   repeat,
@@ -20,7 +20,12 @@ translate :-
 	  member(R,Rs),
 	  remove_quantifiers([],R,Rs1),
 	  member(RR,Rs1),
-	  write_rule(RR,C),nl,
+	  (
+	  	\+ opt(no_explanations),
+	  	write_rule(RR,C),nl
+	  ;
+	  	write_rule(RR),nl
+	  ),
 	  fail
 	; true),!.
 
@@ -41,7 +46,7 @@ write_explain_rule(OHead, OBody) :-
     replace_not_eq(B,Body),
 
     Head =.. [FiredName|ArgsAndValue],
-    concat_atom(['fired_',FName], FiredName),
+    concat_atom(['holds_',FName], FiredName),
 
     %quitar esto en el futuro
     append(Args, [_LastItem], ArgsAndValue),
@@ -71,7 +76,7 @@ write_label_rule(LabelNumber, Label, OHead, OBody) :-
     replace_not_eq(B,Body),
 
     Head =.. [FiredName|ArgsAndValue],
-    concat_atom(['fired_',FName], FiredName),
+    concat_atom(['holds_',FName], FiredName),
 
     % Parametros
     append(AuxArgs, [_LastItem], ArgsAndValue),
@@ -247,7 +252,7 @@ t_rule(def_assign(Fterm,T),B,L) :-
 
 %  Assignment
 t_rule(assign(fterm(F,Args),T),B,[(A1 :- B1)]) :-
-    concat_atom(['fired_',F],HOLDSF),
+    concat_atom(['holds_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	t_term(T,T1,Hs),
 	append(Args1,[T1],Args2),
@@ -271,7 +276,7 @@ t_rule(choice(fterm(F,Args),set(v(X),Cond)),B,[R1,R2,R3]) :-
 	map_subterms(replace_var,[v/1],Cond,Cond2),
 
     % Translate the head functional term
-    concat_atom(['fired_',F],HOLDSF),
+    concat_atom(['holds_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	append(Args1,[v(AUXVAR)],Args2),
 	A =.. [HOLDSF | Args2],
@@ -294,7 +299,7 @@ t_rule(choice(fterm(F,Args),set(List)),B,[R1,R2,R3|Rs]) :-
 	!,newvar(AUXVAR),
 	
     % Translate the head functional term
-    concat_atom(['fired_',F],HOLDSF),
+    concat_atom(['holds_',F],HOLDSF),
 	t_terms(Args,Args1,Gs),
 	append(Args1,[v(AUXVAR)],Args2),
 	A =.. [HOLDSF | Args2],
@@ -470,7 +475,7 @@ write_rule(R, Label/RuleNum/_LineNum) :-
 	;
 		% Write holds rule
 		append(TrueArgs, [_Value], Args),
-		concat_atom(['fired_',Fname],RuleFname), 
+		concat_atom(['holds_',Fname],RuleFname), 
 		write_holds(Fname, TrueArgs ,FiredHead),
 
 		% Saving rule info with the ruleNumber
