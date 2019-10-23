@@ -228,3 +228,5 @@
   utility(761,13).
   utility(762,73).
   utility(763,73).
+
+#show utility/2.

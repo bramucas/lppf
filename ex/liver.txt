@@ -1,4 +1,4 @@
-% age(686):=59.
+  % age(686):=59.
 age(686,59).
 
 bmi(686,21).  p_trans(686,0).  nab_surgery(686).  albumin_fl(686,400).  ndialysis(686).  nicu(686).  nhospital(686).  meld(686,7).   nl_sup(686).  nenceph(686).  np_thromb(686).  nascites(686).   alive(686).
@@ -340,6 +340,7 @@ psoft_sum(R,P,SUM) :- psoft_sum(R-1,P,PSUM),
 % psoft(P):= #sum{psoft_weight(C,P):category(C)} :- transplant(P).
 % posft(P,X) :- transplant(P), #sum{Z,C:psoft_weight(C,P,Z),category(C)}=X.
 
-psoft_cal(P,V) :- psoft_sum(R,P,V), R=14, P=711.
+psoft_cal(P,V) :- psoft_sum(R,P,V), R=14.
 
-#show psoft_cal/2.
+%#show psoft_cal/2.
+#explain psoft_cal(P,V) :- P=711.
