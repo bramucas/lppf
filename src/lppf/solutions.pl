@@ -101,7 +101,7 @@ process_fact(Term):-
 		  Value = true  -> 
 			writelist(['  ', Term2,'.']),nl
 		; Value = false -> 
-			writelist(['  ','~',Term2,'.']),nl
+			writelist(['  ','-',Term2,'.']),nl
 		;	
 			writelist(['  ',Term2,'=',Value,'.']),nl	
 		)

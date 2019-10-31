@@ -19,7 +19,17 @@ findCauses :-
 		% Automatically label no-labeled-facts if option label facts is active
 		(
 			OriginalLabel = no_label, opt(label_facts) ->
-				LabelFired = TermFired
+
+				append(_Arguments, [Value], ArgValues),
+				term_to_atom(TermFired, PrintableTermFired),
+				(	
+				  Value = true  -> 
+					concat_atom(['',PrintableTermFired], LabelFired)
+				; Value = false -> 
+					concat_atom(['-',PrintableTermFired], LabelFired)
+				;	
+					concat_atom([PrintableTermFired,'=',Value,'.'], LabelFired)
+				)
 			;
 				processLabel(OriginalLabel, TermFired, ArgValues, VarNames, LabelFired)
 		),
@@ -374,9 +384,9 @@ writeCauseTree(Term, no_label, Value, Causes, Level) :-
 	  Value = true  -> 
 		write(Term)
 	; Value = false -> 
-		writelist(['~',Term])
+		writelist(['-',Term])
 	;	
-		writelist([Term,' = ',Value])
+		writelist([Term,'=',Value])
 	),nl,
 	
 	% Causes
@@ -420,9 +430,9 @@ writeCauseTree(Term, Label, Value, Causes, Level) :-
 		  Value = true  -> 
 			write(Term)
 		; Value = false -> 
-			writelist(['~',Term])
+			writelist(['-',Term])
 		;	
-			writelist([Term,' = ',Value])
+			writelist([Term,'=',Value])
 		)
 	),nl,
 	
