@@ -149,6 +149,8 @@ replaceValues(ArgValues, VarNames, [Item|T], [NewItem|Result]) :-
 	NewItem =.. [F|Values],
 	replaceValues(ArgValues, VarNames, T, Result).
 replaceValues(_, _, [], []).
+replaceValues([], _, _, []).
+replaceValues(_, [], _, []).
 
 
 % getVarValues(ArgValues, VarNames, VarList, Result).
