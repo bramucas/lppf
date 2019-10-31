@@ -4,8 +4,6 @@
 
 loadfiles([]):-!.
 loadfiles([Fname|Fs]):-
-	(opt(quiet),!; header),
-
 	atom_concat(Fname,'.tmp',TmpFile),
 	
 	% Remove temporal file

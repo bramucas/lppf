@@ -27,7 +27,7 @@
 :- consult('htmlReportStyle.pl').
 :- consult('explanations.pl').
 
-:- dynamic opt/1.	% Program options like, for instance, opt(debug)
+:- dynamic opt/1.	% Program options like, for instance, opt(version)
 
 %----- main ------------------------------------------------------------------
 
@@ -41,12 +41,11 @@ main_c :- unix(argv(Argv)),
 
 % if no arguments, print help
 main([]):- !,
-  header,nl,
   write('lppf [options] filenames'),nl,
+  write('  --version      prints information header'),nl,
   write('  -n <number>    computes at most <number> stable models. Default <number> is 1.'),nl,
   write('                 When <number> is 0, computes all stable models.'),nl,
   write('  -o <filename>  output file.'),nl,
-  write('  -q             supresses information header and messages.'),nl,
   write('  -t             just print the translation of functions into predicates.'),nl,
   write('  -r, --report   builds an html report with graphs.'),nl,
   write('  -sr            builds the report but does not open it automatically.'),nl,
@@ -60,6 +59,7 @@ main([]):- !,
 main(Args):-
 	checkoptions(Args,Args2),
 	(opt(nummodels(N)),!; N=1,asserta(opt(nummodels(N))) ),
+	(opt(version),!,header,halt(0);true),
 	loadfiles(Args2),
 	(opt(translation),!;tell('lppf.tmp')),
 	translate,
@@ -94,8 +94,7 @@ checkoptions([X|Xs],Ys):-
 checkoptions([X|Xs],[X|Ys]):- checkoptions(Xs,Ys).
 
 
-option('-q',quiet).
-option('-v',debug).
+option('--version',version).
 option('-t',translation).
 option('--nohalt',nohalt).
 
@@ -109,10 +108,8 @@ option('-sr',static_report).
 /* Verbosity modes */
 option('verbose 0', no_explanations).
 option('verbose 1', default).
-%option('--complete',complete).
-option('verbose 3', complete).
-%option('--labelFacts',label_facts).
 option('verbose 2', label_facts).
+option('verbose 3', complete).
 
 header :-
   write(' Logic Programs with Partial Functions 2.0'),nl,

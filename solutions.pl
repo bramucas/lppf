@@ -106,9 +106,6 @@ process_fact(Term):-
 			writelist(['  ',Term2,'=',Value,'.']),nl	
 		)
 	  ; 
-	  	opt(debug),!,
-	  	write(Term),nl
-	  ; 
 	  	true
 	).
 
