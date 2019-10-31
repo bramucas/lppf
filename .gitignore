@@ -2,9 +2,7 @@
 # Tacking ignore file
 !/.gitignore
 
-# Getterms
-!/parser.y
-!/scanner.l
+!/src
 
 # Examples directory
 !/ex
@@ -15,11 +13,6 @@
 # Docs
 !/*.md
 
-# Source code
-!/*.c
-!/*.h
-!/*.pl
-
 # Report template and resources directories
 !/reportTemplate
 !/resources
@@ -29,4 +22,5 @@ lex.yy.c
 y.tab.c
 y.tab.h
 
+#liver script
 !liver.sh

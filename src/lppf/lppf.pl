@@ -113,4 +113,4 @@ option('verbose 3', complete).
 
 header :-
   write(' Logic Programs with Partial Functions 2.0'),nl,
-  write(' (c) 2017- Pedro Cabalar, 12/01/2017, University of Corunna'),nl.
+  write(' (c) 2019- Pedro Cabalar, 12/01/2017, University of Corunna'),nl.
