@@ -21,3 +21,6 @@ y.tab.c : $(GTERMS_SRC)parser.y
 	
 lex.yy.c : $(GTERMS_SRC)scanner.l
 	$(LEX) $(GTERMS_SRC)scanner.l	
+
+clean:
+	rm y.tab.c y.tab.h y.output lex.yy.c
