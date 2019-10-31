@@ -3,7 +3,7 @@ person(gabriel).
 person(clare).
 
 drive(gabriel).
-alcohol(gabriel):=40.
+alcohol(gabriel):=55.
 resist(gabriel).
 
 drive(clare).
