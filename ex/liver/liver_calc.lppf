@@ -62,4 +62,4 @@ soft_sum(R,P):= soft(soft_category(R),P) + soft_sum(R-1,P).
     soft_level(P) := futile   :- soft_cal(P)=X, 40<X.
 
 
-#explain soft_level(P) :- ~alive(P), soft_level(P)=moderadamente_alto.
+#explain soft_level(P) :- -alive(P), soft_level(P)=moderadamente_alto.
