@@ -678,6 +678,64 @@ makeDirectory(Path) :-
 	make_directory(Path).
 
 
+%%%%%%%%%%%%% Causal term %%%%%%%%%%%%%
+
+makeCausalTerms :-
+	current_predicate(cause/5),
+	(
+		current_predicate(explain/0),
+	  	(
+	  	  current_predicate(justExplain/1),
+	  	  (
+	  		repeat,
+			(
+		      justExplain(Term),
+			  toExplain(cause(Term, Label, Value, _RuleNumber, Causes)),
+			  causalTerm(Term, Label, Value, Causes, CTerm),
+			  write(CTerm),nl,
+			  incr(explainCount,1),
+			  fail
+			; true
+			),
+
+			explainCount(ExplainCount),
+			writelist([ExplainCount, ' ocurrences explained.']),nl,nl,
+			!
+	  	  	)
+	  	;
+	  	  nl,write('Wrong explain sentences'),nl,!
+		)	
+	;
+		repeat,
+		(
+			toExplain(cause(Term, Label, Value, _RuleNumber2, Causes)),
+			causalTerm(Term, Label, Value, Causes, CTerm),
+			write(CTerm),nl,
+			fail
+		;	true
+		),!
+	).
+
+
+causalTerm(Term, _Label, _Value, [], Term).
+causalTerm(Term, _Label, _Value, is_leaf, Term).
+
+causalTerm(Term, _Label, _Value, Causes, CausalTerm) :- 
+	causalJoint(Causes, JointC),
+	binop('*', JointC, FinalJoint),
+	term_to_atom(FinalJoint, PrintableFinalJoint),
+	term_to_atom(Term, PrintableTerm),
+	concat_atom([PrintableFinalJoint, '·', PrintableTerm], CausalTerm).
+
+causalJoint([], []).
+causalJoint(is_leaf, []).
+causalJoint([HCause|TailCauses], [J|JTail]) :-
+	HCause =.. [cause|[T,L,V,_RN,C]],
+	causalTerm(T,L,V, C, J),
+	causalJoint(TailCauses, JTail).
+
+
+
 
 %%%%%%%%%%%%% Equivalent explanations %%%%%%%%%%%%%
 

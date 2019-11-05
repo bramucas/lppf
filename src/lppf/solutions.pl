@@ -121,6 +121,9 @@ explain_solution :-
 		makeReportDir,
 		writeReport
 	;
+		opt(causal_terms),!,
+		makeCausalTerms
+	;
 		writeCauses
 	),
 

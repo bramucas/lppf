@@ -54,6 +54,7 @@ main([]):- !,
   write('     --verbose 1:  explanations only include labels (this is the default mode).'),nl,
   write('     --verbose 2:  automatically labels all non-labeled facts in the program.'),nl,
   write('     --verbose 3:  inludes all the information about the derivation in the explanations.'),nl,
+  write('     --verbose 4:  explanations will be printed in form of causal terms.'),nl,
   (opt(nohalt),!; halt(0)).
 
 main(Args):-
@@ -110,6 +111,9 @@ option('verbose 0', no_explanations).
 option('verbose 1', default).
 option('verbose 2', label_facts).
 option('verbose 3', complete).
+option('verbose 4', causal_terms) :-
+	checkoptions(['--verbose', '3'],_).
+
 
 header :-
   write(' Logic Programs with Partial Functions 2.0'),nl,
