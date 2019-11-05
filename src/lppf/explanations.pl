@@ -690,9 +690,10 @@ makeCausalTerms :-
 	  		repeat,
 			(
 		      justExplain(Term),
+		      write(Term),nl,
 			  toExplain(cause(Term, Label, Value, _RuleNumber, Causes)),
 			  causalTerm(Term, Label, Value, Causes, CTerm),
-			  write(CTerm),nl,
+			  writelist(["\t", CTerm]),nl,nl,
 			  incr(explainCount,1),
 			  fail
 			; true
@@ -709,8 +710,9 @@ makeCausalTerms :-
 		repeat,
 		(
 			toExplain(cause(Term, Label, Value, _RuleNumber2, Causes)),
+			write(Term),nl,
 			causalTerm(Term, Label, Value, Causes, CTerm),
-			write(CTerm),nl,
+			writelist(["\t",CTerm]),nl,nl,
 			fail
 		;	true
 		),!
@@ -723,9 +725,9 @@ causalTerm(Term, _Label, _Value, is_leaf, Term).
 causalTerm(Term, _Label, _Value, Causes, CausalTerm) :- 
 	causalJoint(Causes, JointC),
 	binop('*', JointC, FinalJoint),
-	term_to_atom(FinalJoint, PrintableFinalJoint),
+	format(atom(PrintableFinalJoint), "~w", [FinalJoint]),
 	term_to_atom(Term, PrintableTerm),
-	concat_atom([PrintableFinalJoint, '·', PrintableTerm], CausalTerm).
+	concat_atom(['(',PrintableFinalJoint, ')·', PrintableTerm], CausalTerm).
 
 causalJoint([], []).
 causalJoint(is_leaf, []).
