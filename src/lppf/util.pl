@@ -115,3 +115,11 @@ sort_atoms_by_length(Atoms, ByLength) :-
         map_list_to_pairs(atom_length, Atoms, Pairs),
         keysort(Pairs, Sorted),
         pairs_values(Sorted, ByLength).
+
+termAndValue(Term, true, Term):-!.
+termAndValue(Term, false, TermAndValue) :-
+	!,
+	concat_atom(['-', Term], TermAndValue).
+termAndValue(Term, Value, TermAndValue) :-
+	!,
+	concat_atom([Term, '=', Value], TermAndValue).

@@ -691,9 +691,9 @@ makeCausalTerms :-
 			(
 		      justExplain(Term),
 		      write(Term),nl,
-			  toExplain(cause(Term, Label, Value, _RuleNumber, Causes)),
-			  causalTerm(Term, Label, Value, Causes, CTerm),
-			  writelist(["\t", CTerm]),nl,nl,
+			  %toExplain(cause(Term, _Label, Value, _RuleNumber, _Causes)),!,
+			  causalTerm(Term,  CTerm),
+			  nl,writelist(["\t", CTerm]),nl,nl,
 			  incr(explainCount,1),
 			  fail
 			; true
@@ -709,31 +709,47 @@ makeCausalTerms :-
 	;
 		repeat,
 		(
-			toExplain(cause(Term, Label, Value, _RuleNumber2, Causes)),
+			distinct(Term, toExplain(cause(Term, _Label, _Value, _RuleNumber2, _Causes))),
 			write(Term),nl,
-			causalTerm(Term, Label, Value, Causes, CTerm),
-			writelist(["\t",CTerm]),nl,nl,
+			causalTerm(Term, CTerm),
+			nl, writelist(["\t",CTerm]),nl,nl,
 			fail
 		;	true
 		),!
 	).
 
+causalTerm(T, CTerm) :-
+	toExplain(cause(T, _L, V, _RN, is_leaf)),
+	format(atom(PrintableTerm), "~w", [T]),
+	termAndValue(PrintableTerm, V, CTerm).
 
-causalTerm(Term, _Label, _Value, [], Term).
-causalTerm(Term, _Label, _Value, is_leaf, Term).
+causalTerm(T, CTerm) :-
+	toExplain(cause(T, _L, V, _RN, [])),
+	format(atom(PrintableTerm), "~w", [T]),
+	termAndValue(PrintableTerm, V, CTerm).
 
-causalTerm(Term, _Label, _Value, Causes, CausalTerm) :- 
+causalTerm(T, CTerm) :-
+	findall(A, (distinct(J, (toExplain(cause(T, _L, _V, _RN, C)), dif(C,[]), dif(C,is_leaf), causalJoint(C, J))), binop('*', J, A)), Alternatives),
+	distinct(Value, toExplain(cause(T, _L2, Value, _RN2, _C2))),
+	binop('+', Alternatives, FAlternatives),
+	format(atom(PrintableAlternatives), "~w", FAlternatives),
+
+	format(atom(PrintableTerm), "~w", T),
+	termAndValue(PrintableTerm, Value, TermAndValue),
+
+	concat_atom(['(',PrintableAlternatives, ')·', TermAndValue], CTerm).
+
+
+altCausalTerm(_Term, _Label, _Value, Causes, CausalTerm) :- 
 	causalJoint(Causes, JointC),
 	binop('*', JointC, FinalJoint),
-	format(atom(PrintableFinalJoint), "~w", [FinalJoint]),
-	term_to_atom(Term, PrintableTerm),
-	concat_atom(['(',PrintableFinalJoint, ')·', PrintableTerm], CausalTerm).
+
+	format(atom(CausalTerm), "~w", [FinalJoint]).
 
 causalJoint([], []).
-causalJoint(is_leaf, []).
 causalJoint([HCause|TailCauses], [J|JTail]) :-
-	HCause =.. [cause|[T,L,V,_RN,C]],
-	causalTerm(T,L,V, C, J),
+	HCause =.. [cause|[T,_L,_V,_RN, _C]],
+	causalTerm(T, J),
 	causalJoint(TailCauses, JTail).
 
 
