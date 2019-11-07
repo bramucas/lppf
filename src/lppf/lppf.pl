@@ -43,6 +43,7 @@ main_c :- unix(argv(Argv)),
 main([]):- !,
   write('lppf [options] filenames'),nl,
   write('  --version      prints information header'),nl,
+  write('  -q             only prints the solutions, omiting other messages'),nl,
   write('  -n <number>    computes at most <number> stable models. Default <number> is 1.'),nl,
   write('                 When <number> is 0, computes all stable models.'),nl,
   write('  -o <filename>  output file.'),nl,
@@ -96,6 +97,7 @@ checkoptions([X|Xs],[X|Ys]):- checkoptions(Xs,Ys).
 
 
 option('--version',version).
+option('-q', quiet).
 option('-t',translation).
 option('--nohalt',nohalt).
 

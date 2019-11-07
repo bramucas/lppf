@@ -9,14 +9,13 @@ show_next_solution:-
 	(T='UNSATISFIABLE',!
 	;T='SATISFIABLE',!
 	;incr(numsol,1), numsol(N), 
-	 nl,writelist(['Answer:',N]),nl,
+	 writelist(['Answer:',N]),nl,
 	 atom_to_term(T,Term,_),process_fact(Term),
 	 (D=0' ,!,get_next_fact; true),
-	 nl,
 
 	 (\+ opt(no_explanations), explain_solution; true),
 	 
-	 show_next_solution,nl
+	 show_next_solution
 	).
 show_next_solution.	
 
