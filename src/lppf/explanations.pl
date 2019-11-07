@@ -690,10 +690,8 @@ makeCausalTerms :-
 	  		repeat,
 			(
 		      justExplain(Term),
-		      write(Term),nl,
-			  %toExplain(cause(Term, _Label, Value, _RuleNumber, _Causes)),!,
 			  causalTerm(Term,  CTerm),
-			  nl,writelist(["\t", CTerm]),nl,nl,
+			  write(CTerm),nl,
 			  incr(explainCount,1),
 			  fail
 			; true
@@ -710,9 +708,8 @@ makeCausalTerms :-
 		repeat,
 		(
 			distinct(Term, toExplain(cause(Term, _Label, _Value, _RuleNumber2, _Causes))),
-			write(Term),nl,
 			causalTerm(Term, CTerm),
-			nl, writelist(["\t",CTerm]),nl,nl,
+			write(CTerm),nl,
 			fail
 		;	true
 		),!
