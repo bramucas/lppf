@@ -21,15 +21,7 @@ findCauses :-
 			OriginalLabel = no_label, opt(label_facts) ->
 
 				append(_Arguments, [Value], ArgValues),
-				term_to_atom(TermFired, PrintableTermFired),
-				(	
-				  Value = true  -> 
-					concat_atom(['',PrintableTermFired], LabelFired)
-				; Value = false -> 
-					concat_atom(['-',PrintableTermFired], LabelFired)
-				;	
-					concat_atom([PrintableTermFired,'=',Value,'.'], LabelFired)
-				)
+				termAndValue(TermFired, Value, LabelFired)
 			;
 				processLabel(OriginalLabel, TermFired, ArgValues, VarNames, LabelFired)
 		),
@@ -381,15 +373,8 @@ writeCauseTree(Term, no_label, Value, Causes, Level) :-
 
 
 	% Node Term and value
-	% If it is a boolean value change the output format
-	(	
-	  Value = true  -> 
-		write(Term)
-	; Value = false -> 
-		writelist(['-',Term])
-	;	
-		writelist([Term,'=',Value])
-	),nl,
+	termAndValue(Term, Value, TermAndValue),
+	write(TermAndValue),nl,
 	
 	% Causes
 	(
@@ -428,14 +413,8 @@ writeCauseTree(Term, Label, Value, Causes, Level) :-
 			true
 	;
 		% If it is a boolean value change the output format
-		(	
-		  Value = true  -> 
-			write(Term)
-		; Value = false -> 
-			writelist(['-',Term])
-		;	
-			writelist([Term,'=',Value])
-		)
+		termAndValue(Term, Value, TermAndValue),
+		write(TermAndValue)
 	),nl,
 	
 	% Causes
@@ -717,13 +696,11 @@ makeCausalTerms :-
 
 causalTerm(T, CTerm) :-
 	toExplain(cause(T, _L, V, _RN, is_leaf)),
-	format(atom(PrintableTerm), "~w", [T]),
-	termAndValue(PrintableTerm, V, CTerm).
+	termAndValue(T, V, CTerm).
 
 causalTerm(T, CTerm) :-
 	toExplain(cause(T, _L, V, _RN, [])),
-	format(atom(PrintableTerm), "~w", [T]),
-	termAndValue(PrintableTerm, V, CTerm).
+	termAndValue(T, V, CTerm).
 
 causalTerm(T, CTerm) :-
 	findall(A, (distinct(J, (toExplain(cause(T, _L, _V, _RN, C)), dif(C,[]), dif(C,is_leaf), causalJoint(C, J))), binop('*', J, A)), Alternatives),
@@ -731,8 +708,7 @@ causalTerm(T, CTerm) :-
 	binop('+', Alternatives, FAlternatives),
 	format(atom(PrintableAlternatives), "~w", FAlternatives),
 
-	format(atom(PrintableTerm), "~w", T),
-	termAndValue(PrintableTerm, Value, TermAndValue),
+	termAndValue(T, Value, TermAndValue),
 
 	concat_atom(['(',PrintableAlternatives, ')·', TermAndValue], CTerm).
 

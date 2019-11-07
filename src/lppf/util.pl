@@ -116,10 +116,11 @@ sort_atoms_by_length(Atoms, ByLength) :-
         keysort(Pairs, Sorted),
         pairs_values(Sorted, ByLength).
 
-termAndValue(Term, true, Term):-!.
+termAndValue(Term, true, PrintableTerm):-
+	!, format(atom(PrintableTerm), "~w", [Term]).
 termAndValue(Term, false, TermAndValue) :-
-	!,
-	concat_atom(['-', Term], TermAndValue).
+	!, format(atom(PrintableTerm), "~w", [Term]),
+	concat_atom(['-', PrintableTerm], TermAndValue).
 termAndValue(Term, Value, TermAndValue) :-
-	!,
-	concat_atom([Term, '=', Value], TermAndValue).
+	!, format(atom(PrintableTerm), "~w", [Term]),
+	concat_atom([PrintableTerm, '=', Value], TermAndValue).
