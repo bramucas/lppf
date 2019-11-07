@@ -97,14 +97,8 @@ process_fact(Term):-
 		append(Args0,[Value],Args),
 		Term2 =.. [F2|Args0],
 		% If it is a boolean value change the output format
-		(	
-		  Value = true  -> 
-			writelist(['  ', Term2,'.']),nl
-		; Value = false -> 
-			writelist(['  ','-',Term2,'.']),nl
-		;	
-			writelist(['  ',Term2,'=',Value,'.']),nl	
-		)
+		termAndValue(Term2, Value, TermAndValue),
+		write(TermAndValue),nl
 	  ; 
 	  	true
 	).
