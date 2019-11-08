@@ -7,12 +7,3 @@ married(abel,ruth).
 married(cain,sara).
 
 happy(X) :- person(X), not #exists{Y: p(X,Y), not #exists{Z: married(Y,Z)}}.
-
-%f(1):=1.
-f(3):=5.
-q(1,1). q(2,4). q(3,0).
-k:=2.
-h :- #exists{f(X)/Y:q(X,Y)}.
-%h :- not #exists{X,Y: q(X,Y),#exists{f(X)/Y}}.
-w :- #exists{3/0}.
-

@@ -1,0 +1,9 @@
+mcd(A,B,M)  :- A>B, A>0, B>0, A1 is A mod B, mcd(B,A1,M).
+mcd(A,B,M)  :- B>A, A>0, B>0, B1 is B mod A, mcd(A,B1,M).
+mcd(A,A,A)  :- A>0.
+mcd(A,0,A)  :- A>0.
+mcd(0,B,B)  :- B>0.
+
+q(9,3).
+q(4,10).
+p(W) :- q(X,Y), mcd(X,Y,W).

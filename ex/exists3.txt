@@ -1,0 +1,9 @@
+u :- #exists{3/0}.
+w :- not #exists{3/0}.
+
+f(1):=1.
+f(3):=5.
+q(1,1). q(2,4). q(3,0).
+h :- #exists{f(X)/Y:q(X,Y)}.
+none :- not #exists{X,Y: q(X,Y),#exists{f(X)/Y}}.
+
