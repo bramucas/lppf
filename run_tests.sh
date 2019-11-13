@@ -2,7 +2,7 @@
 
 # Config
 TESTFILES=tests/test?
-OPTIONS="-q -n 0 --verbose 4"
+OPTIONS="-q -n 0 --format cterms --labelHeads all"
 
 ### Managing options
 # By default
