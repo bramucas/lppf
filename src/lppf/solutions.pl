@@ -105,6 +105,7 @@ process_fact(Term):-
 explain_solution :- 
 	findCauses,
 	skipEquivalentExplanations,
+	%printCauses,nl,nl,
 	(
 		opt(report),!,
 		makeReportDir,
@@ -128,3 +129,13 @@ explain_solution :-
 	retractall(reportRow(_R)),	
 	retractall(toExplain(_Expl)),
 	retractall(label(_FT, _LF2)).
+
+% For debugging
+printCauses :-
+	repeat,
+	(
+      toExplain(C),
+	  write(C),nl,
+	  fail
+	; true
+	).

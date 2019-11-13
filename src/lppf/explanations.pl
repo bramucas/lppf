@@ -19,9 +19,11 @@ findCauses :-
 		% Automatically label no-labeled-facts if option label facts is active
 		(
 			OriginalLabel = no_label, opt(label_facts) ->
-
 				append(_Arguments, [Value], ArgValues),
 				termAndValue(TermFired, Value, LabelFired)
+			;
+			opt(causal_terms), OriginalLabel =.. [text|_] ->  % Textual label are removed in caustal_terms mode (verbose 4)
+				LabelFired = no_label
 			;
 				processLabel(OriginalLabel, TermFired, ArgValues, VarNames, LabelFired)
 		),
@@ -38,6 +40,7 @@ findCauses :-
 	(
 		fired(RuleNumber, ArgValues),
 		ruleInfo(RuleNumber, Label, OriginalTerm, VarNames, Body),
+
 		(
 			Body = [] -> true
 		;	
@@ -45,7 +48,13 @@ findCauses :-
 			
 			replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),
 
-			processLabel(Label, TermFired, ArgValues, VarNames, LabelFired),
+			(
+				opt(causal_terms), Label =.. [text|_] ->  % Textual label are removed in caustal_terms mode (verbose 4)
+					LabelFired = no_label
+				;
+					processLabel(Label, TermFired, ArgValues, VarNames, LabelFired)
+			),
+			
 
 			append(_Args, [ValueFired], ArgValues),
 
@@ -670,16 +679,11 @@ makeCausalTerms :-
 			(
 		      justExplain(Term),
 			  causalTerm(Term,  CTerm),
-			  write(CTerm),nl,
-			  incr(explainCount,1),
+			  assert(causal_term(CTerm)),
 			  fail
 			; true
-			),
-
-			explainCount(ExplainCount),
-			writelist([ExplainCount, ' ocurrences explained.']),nl,nl,
-			!
-	  	  	)
+			)
+	  	   )
 	  	;
 	  	  nl,write('Wrong explain sentences'),nl,!
 		)	
@@ -687,44 +691,52 @@ makeCausalTerms :-
 		repeat,
 		(
 			distinct(Term, toExplain(cause(Term, _Label, _Value, _RuleNumber2, _Causes))),
-			causalTerm(Term, CTerm),
-			write(CTerm),nl,
+			causalTerm(Term,  CTerm),
+			assert(causal_term(CTerm)),
 			fail
 		;	true
 		),!
+	),
+	(
+		current_predicate(causal_term/1) ->
+			findall(CT, distinct(CT, causal_term(CT)), CTList),
+			sort(CTList, SortedCTList),
+			maplist(writeln, SortedCTList)
+		;
+			true
 	).
 
 causalTerm(T, CTerm) :-
-	toExplain(cause(T, _L, V, _RN, is_leaf)),
-	termAndValue(T, V, CTerm).
+	toExplain(cause(T, L, V, _RN, C)),
+	(C=[];C=is_leaf),
+	(
+		L = no_label ->
+			binop('=', [T,V], CTerm)
+		;
+			CTerm = L
+	).
 
 causalTerm(T, CTerm) :-
-	toExplain(cause(T, _L, V, _RN, [])),
-	termAndValue(T, V, CTerm).
-
-causalTerm(T, CTerm) :-
-	findall(A, (distinct(J, (toExplain(cause(T, _L, _V, _RN, C)), dif(C,[]), dif(C,is_leaf), causalJoint(C, J))), binop('*', J, A)), Alternatives),
-	distinct(Value, toExplain(cause(T, _L2, Value, _RN2, _C2))),
-	binop('+', Alternatives, FAlternatives),
-	format(atom(PrintableAlternatives), "~w", FAlternatives),
-
-	termAndValue(T, Value, TermAndValue),
-
-	concat_atom(['(',PrintableAlternatives, ')·', TermAndValue], CTerm).
-
-
-altCausalTerm(_Term, _Label, _Value, Causes, CausalTerm) :- 
-	causalJoint(Causes, JointC),
-	binop('*', JointC, FinalJoint),
-
-	format(atom(CausalTerm), "~w", [FinalJoint]).
+	distinct(L, toExplain(cause(T, L, Value, _RN, _C))),
+	(
+		L = no_label ->
+			findall(A, (distinct(J, (toExplain(cause(T, _L, _V, _RN2, C)), dif(C,[]), dif(C,is_leaf), causalJoint(C, J))), binop('*', J, A)), Alternatives),
+			termAndValueCompound(T,Value, ActualTerm)
+		;
+			findall(A, (distinct(J, (toExplain(cause(_T, L, _V2, _RN3, C)), dif(C,[]), dif(C,is_leaf), causalJoint(C, J))), binop('*', J, A)), Alternatives),
+			ActualTerm = L
+	),
+	
+	distinct(Value, toExplain(cause(T, _L2, Value, _RN4, _C2))),
+	sort(Alternatives, SortedAlternatives),
+	binop('+', SortedAlternatives, FAlternatives),
+	binop('·', [FAlternatives,ActualTerm], CTerm).
 
 causalJoint([], []).
 causalJoint([HCause|TailCauses], [J|JTail]) :-
 	HCause =.. [cause|[T,_L,_V,_RN, _C]],
 	causalTerm(T, J),
 	causalJoint(TailCauses, JTail).
-
 
 
 
