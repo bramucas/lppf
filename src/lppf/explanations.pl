@@ -18,11 +18,11 @@ findCauses :-
 
 		% Automatically label no-labeled-facts if option label facts is active
 		(
-			OriginalLabel = no_label, opt(label_facts) ->
+			OriginalLabel = no_label, (opt(label_facts); opt(complete)) ->
 				append(_Arguments, [Value], ArgValues),
 				termAndValue(TermFired, Value, LabelFired)
 			;
-			opt(causal_terms), OriginalLabel =.. [text|_] ->  % Textual label are removed in caustal_terms mode (verbose 4)
+			opt(causal_terms), OriginalLabel =.. [text|_] ->  % Textual label are removed in caustal_terms mode (--format cterms)
 				LabelFired = no_label
 			;
 				processLabel(OriginalLabel, TermFired, ArgValues, VarNames, LabelFired)
@@ -49,7 +49,11 @@ findCauses :-
 			replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),
 
 			(
-				opt(causal_terms), Label =.. [text|_] ->  % Textual label are removed in caustal_terms mode (verbose 4)
+				Label = no_label, opt(complete) ->
+					append(_Arguments2, [Value], ArgValues),
+					termAndValue(TermFired, Value, LabelFired)
+				;
+				opt(causal_terms), Label =.. [text|_] ->  % Textual label are removed in caustal_terms mode (--format cterms)
 					LabelFired = no_label
 				;
 					processLabel(Label, TermFired, ArgValues, VarNames, LabelFired)
@@ -86,13 +90,8 @@ addExplanation(Expl) :-
 getCauses(ArgValues, VarNames, Body, TrimmedCauses) :-
 	simplifyBody(Body, SimplifiedBody),
 	replaceValues(ArgValues, VarNames, SimplifiedBody, Result),
-	(
-	\+ opt(complete) ->
-		evaluateCausesLabels(Result, Causes0),
-		trimCausesLabels(Causes0, Causes)
-	;
-		evaluateCauses(Result, Causes)
-	),
+	evaluateCausesLabels(Result, Causes0),
+	trimCausesLabels(Causes0, Causes),
 	sort(Causes, TrimmedCauses).
 
 % evaluateCauses(Body, Causes)
@@ -403,7 +402,7 @@ writeCauseTree(Term, no_label, Value, Causes, Level) :-
 		),!
 	).	
 
-writeCauseTree(Term, Label, Value, Causes, Level) :- 
+writeCauseTree(_Term, Label, _Value, Causes, Level) :- 
 	!,
 	% Root marker
 	(
@@ -414,18 +413,8 @@ writeCauseTree(Term, Label, Value, Causes, Level) :-
 	),
 
 	% Label
-	writelist([' \033[1;33m',Label,'\033[0m ']),
+	writelist([' \033[1;33m',Label,'\033[0m \n']),
 
-	% Node Term and value
-	(
-		\+ opt(complete) ->
-			true
-	;
-		% If it is a boolean value change the output format
-		termAndValue(Term, Value, TermAndValue),
-		write(TermAndValue)
-	),nl,
-	
 	% Causes
 	(
 	  Causes = [] ->
