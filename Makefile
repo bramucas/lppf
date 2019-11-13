@@ -23,4 +23,4 @@ lex.yy.c : $(GTERMS_SRC)scanner.l
 	$(LEX) $(GTERMS_SRC)scanner.l	
 
 clean:
-	rm y.tab.c y.tab.h y.output lex.yy.c lppf.tmp
+	rm y.tab.c y.tab.h y.output lex.yy.c lppf.tmp lppf.2.tmp
