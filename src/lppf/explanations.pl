@@ -16,16 +16,20 @@ findCauses :-
 
 		replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),
 
+		(
+			opt(causal_terms), OriginalLabel =.. [text|_] ->
+				AuxLabel = no_label
+			;
+				AuxLabel = OriginalLabel
+		),
+
 		% Automatically label no-labeled-facts if option label facts is active
 		(
-			OriginalLabel = no_label, (opt(label_facts); opt(complete)) ->
+			AuxLabel = no_label, (opt(label_facts); opt(complete)) ->
 				append(_Arguments, [Value], ArgValues),
 				termAndValue(TermFired, Value, LabelFired)
 			;
-			opt(causal_terms), OriginalLabel =.. [text|_] ->  % Textual label are removed in caustal_terms mode (--format cterms)
-				LabelFired = no_label
-			;
-				processLabel(OriginalLabel, TermFired, ArgValues, VarNames, LabelFired)
+				processLabel(AuxLabel, TermFired, ArgValues, VarNames, LabelFired)
 		),
 
 		append(_Args2, [ValueFired], ArgValues),
@@ -49,14 +53,18 @@ findCauses :-
 			replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),
 
 			(
-				Label = no_label, opt(complete) ->
+				opt(causal_terms), Label =.. [text|_] ->
+					AuxLabel = no_label
+				;
+					AuxLabel = Label
+			),
+
+			(
+				AuxLabel = no_label, opt(complete),
 					append(_Arguments2, [Value], ArgValues),
 					termAndValue(TermFired, Value, LabelFired)
 				;
-				opt(causal_terms), Label =.. [text|_] ->  % Textual label are removed in caustal_terms mode (--format cterms)
-					LabelFired = no_label
-				;
-					processLabel(Label, TermFired, ArgValues, VarNames, LabelFired)
+					processLabel(AuxLabel, TermFired, ArgValues, VarNames, LabelFired)
 			),
 			
 
@@ -203,18 +211,13 @@ trimCausesLabels([],[]).
 
 
 
-
-
-
-
-
 %%%%%%%%%% Processing labels %%%%%%%%%%%%%%%
 
 % processLabel(Label, TermFired, Values, Names, LabelFired)
 %	Get the labels of a Fired Term
 %		- Label: individual label
 processLabel(no_label, TermFired, _, _, no_label) :-
-	\+ label(TermFired,_).
+	\+ opt(complete), \+ label(TermFired,_).
 
 processLabel(label(OriginalLabel), _, Values, Names, LabelFired) :-
 	prepareLabel(OriginalLabel, PreparedLabel),
@@ -655,7 +658,7 @@ makeDirectory(Path) :-
 	make_directory(Path).
 
 
-%%%%%%%%%%%%% Causal term %%%%%%%%%%%%%
+%%%%%%%%%%%%% Causal terms %%%%%%%%%%%%%
 
 makeCausalTerms :-
 	current_predicate(cause/5),
@@ -666,11 +669,15 @@ makeCausalTerms :-
 	  	  (
 	  		repeat,
 			(
-		      justExplain(Term),
-			  causalTerm(Term,  CTerm),
-			  assert(causal_term(CTerm)),
-			  fail
-			; true
+		    	justExplain(Term),
+			  	causalTerm(Term,  CTerm),
+
+				% Assert causal term
+				distinct(Value, toExplain(cause(Term, _L, Value, _RN, _C))),
+				termAndValue(Term, Value, TermValue),
+				assert(causal_term(TermValue, CTerm)),
+			  	fail
+			; 	true
 			)
 	  	   )
 	  	;
@@ -679,47 +686,82 @@ makeCausalTerms :-
 	;
 		repeat,
 		(
-			distinct(Term, toExplain(cause(Term, _Label, _Value, _RuleNumber2, _Causes))),
+			% Get causal term
+			distinct(Term, toExplain(cause(Term, _Label, Value, _RuleNumber2, _Causes))),
 			causalTerm(Term,  CTerm),
-			assert(causal_term(CTerm)),
+
+			% Assert causal term
+			termAndValue(Term, Value, TermValue),
+			assert(causal_term(TermValue, CTerm)),
 			fail
 		;	true
 		),!
-	),
+	).
+
+printCausalTerms :-
+	% Printing causal terms
 	(
-		current_predicate(causal_term/1) ->
-			findall(CT, distinct(CT, causal_term(CT)), CTList),
+		current_predicate(causal_term/2) ->
+			findall([T,CT], causal_term(T,CT), CTList),
 			sort(CTList, SortedCTList),
-			maplist(writeln, SortedCTList)
+			maplist(printct, SortedCTList)
 		;
 			true
 	).
 
+printct([T, CT]) :-
+	writelist([T, '\n\t', CT, '\n']).
+
+
 causalTerm(T, CTerm) :-
-	toExplain(cause(T, L, V, _RN, C)),
-	(C=[];C=is_leaf),
+	toExplain(cause(T, L, _V, _RN, C)),
+	C=is_leaf,
 	(
 		L = no_label ->
-			binop('=', [T,V], CTerm)
+			CTerm = '1'
 		;
 			CTerm = L
 	).
 
+
 causalTerm(T, CTerm) :-
-	distinct(L, toExplain(cause(T, L, Value, _RN, _C))),
-	(
-		L = no_label ->
-			findall(A, (distinct(J, (toExplain(cause(T, _L, _V, _RN2, C)), dif(C,[]), dif(C,is_leaf), causalJoint(C, J))), binop('*', J, A)), Alternatives),
-			termAndValueCompound(T,Value, ActualTerm)
-		;
-			findall(A, (distinct(J, (toExplain(cause(_T, L, _V2, _RN3, C)), dif(C,[]), dif(C,is_leaf), causalJoint(C, J))), binop('*', J, A)), Alternatives),
-			ActualTerm = L
-	),
-	
-	distinct(Value, toExplain(cause(T, _L2, Value, _RN4, _C2))),
+	findall(A, 
+		(
+			(
+				toExplain(cause(T, no_label, _V, _RN2, C)),
+				dif(C,is_leaf),
+				(
+					C=[],A='1'
+					;
+					\+ C=[], 
+					causalJoint(C, J),
+					sort(J, SortedJ),
+					binop('*', SortedJ, A)
+				)
+			)
+		),
+		NoLabelAlternatives),
+
+	findall(A,
+		(
+			distinct(L, (toExplain(cause(T, L, _, _, C)), dif(C, is_leaf), dif(L, no_label) )),
+			findall(J, 
+				(distinct(J, (toExplain(cause(_, L, _, _, C2)), causalJoint(C2, JList), sort(JList, SortedJList), binop('*', SortedJList, J)) )), 
+				Joints),
+			(
+				Joints = [] ->
+					A = L
+				;
+					binop('+', Joints, Alt),
+					binop('·', [Alt, L], A)
+				)
+		),
+		LabelAlternatives),
+
+	append(NoLabelAlternatives, LabelAlternatives, Alternatives),
 	sort(Alternatives, SortedAlternatives),
-	binop('+', SortedAlternatives, FAlternatives),
-	binop('·', [FAlternatives,ActualTerm], CTerm).
+	binop('+', SortedAlternatives, CTerm).
+
 
 causalJoint([], []).
 causalJoint([HCause|TailCauses], [J|JTail]) :-
@@ -733,7 +775,7 @@ causalJoint([HCause|TailCauses], [J|JTail]) :-
 
 % Cuando es sin labels
 skipEquivalentExplanations :-
-	opt(complete),!,
+	(opt(complete);opt(causal_terms)),!,
 	current_predicate(cause/5),
 	repeat,
 	(
@@ -746,7 +788,7 @@ skipEquivalentExplanations :-
 
 % Cuando es con labels pero sin minimal
 skipEquivalentExplanations :-
-	\+ opt(complete),
+	\+ opt(complete), \+ opt(causal_terms),
 	\+ opt(minimal_explanations),!,
 	current_predicate(cause/5),
 	repeat,
@@ -761,7 +803,7 @@ skipEquivalentExplanations :-
 
 % Cuando es con labels y con minimal
 skipEquivalentExplanations :-
-	\+ opt(complete),
+	\+ opt(complete), \+ opt(causal_terms),
 	opt(minimal_explanations),!,
 	current_predicate(cause/5),
 	repeat,
