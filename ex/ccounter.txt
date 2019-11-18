@@ -1,3 +1,4 @@
+% Test to check "modulo 0"
 % Cyclic counter modulo n
 % n is 0 by default
 n:=0 :- not n != 0.

@@ -1,13 +1,23 @@
 Answer:1
-p(1)
-p(2)
-p(3)
-q(2)
 a=1
-Answer:2
+	a=1
 p(1)
+	p(1)
 p(2)
+	p(2)
 p(3)
+	p(3)
 q(2)
+	q(2)
+Answer:2
 a=3
+	a=3
+p(1)
+	p(1)
+p(2)
+	p(2)
+p(3)
+	p(3)
+q(2)
+	q(2)
 2 solutions

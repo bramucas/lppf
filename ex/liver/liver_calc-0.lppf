@@ -1,0 +1,63 @@
+psoft_category(1):=age_60.
+psoft_category(2):=bmi6_35.
+psoft_category(3):=one_previous_transplant.
+psoft_category(4):=two_previous_transplant.
+psoft_category(5):=previous_abdominal_surgey.
+psoft_category(6):=albumin.
+psoft_category(7):=dialysis_prior_transplantation.
+psoft_category(8):=intensive_care_unit_pretransplant.
+psoft_category(9):=admitted_to_hospital_pretransplant.
+psoft_category(10):=meld_30.
+psoft_category(11):=life_support_pretransplant.
+psoft_category(12):=encephalopathy.
+psoft_category(13):=portal_vein_thrombosis.
+psoft_category(14):=ascites_pretransplant.
+
+soft_category(1):= psoft.
+soft_category(2):= portal_bleed_48h_pretransplant.
+soft_category(3):= donor_age2_gt_60.
+soft_category(4):= donor_cerebral_vascular_accident.
+soft_category(5):= donor_creatinine_15.
+soft_category(6):= national_allocation.
+soft_category(7):= donor_age2_10_20.
+soft_category(8):= cold_ischemia_0_6h.
+
+
+%%%%%%%%%%%%%%%%%%%%%% Calculating psoft %%%%%%%%%%%%%%%%%%%%%%
+
+% Necesario para no tener variables unsafe en el cálculo
+
+psoft_sum(0,P):=0 :- transplant(P).
+psoft_sum(R,P):= psoft(psoft_category(R),P) + psoft_sum(R-1,P).
+
+psoft_cal(P) := psoft_sum(14,P).
+
+
+
+%%%%%%%%%%%%%%%%%%%%%% Calculating soft %%%%%%%%%%%%%%%%%%%%%%
+
+soft_sum(0,P):=0 :- transplant(P).
+soft_sum(R,P):= soft(soft_category(R),P) + soft_sum(R-1,P).
+
+"Reglas activadas:" ::
+    soft_cal(P) := soft_sum(8,P).
+
+
+
+"el nivel de riesgo de %P es %_Value porque el soft vale %X" ::
+    soft_level(P) := bajo   :- soft_cal(P)=X, X<=5.
+
+"el nivel de riesgo de %P es %_Value porque el soft vale %X" ::
+    soft_level(P) :=moderadamente_bajo   :- soft_cal(P)=X, 6<=X, X<=15.
+
+"el nivel de riesgo de %P es %_Value porque el soft vale %X" ::
+    soft_level(P) := moderadamente_alto  :- soft_cal(P)=X, 16<=X, X<=35.
+
+"el nivel de riesgo de %P es %_Value porque el soft vale %X" ::
+    soft_level(P) := alto     :- soft_cal(P)=X, 36<=X, X<=40.
+
+"el nivel de riesgo de %P es %_Value porque el soft vale %X" ::
+    soft_level(P) := futile   :- soft_cal(P)=X, 40<X.
+
+
+#explain soft_level(P) :- ~alive(P), soft_level(P)=moderadamente_alto.

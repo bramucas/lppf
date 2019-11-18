@@ -10,7 +10,7 @@ GTERMS_SRC=./src/getterms/
 SRCS=$(LPPF_SRC)util.pl $(LPPF_SRC)display.pl $(LPPF_SRC)loadfile.pl $(LPPF_SRC)translate.pl $(LPPF_SRC)solutions.pl $(LPPF_SRC)explanations.pl $(LPPF_SRC)htmlReportStyle.pl $(LPPF_SRC)lppf.pl
 
 
-lppf : $(SRCS)
+lppf : $(SRCS) getterms
 	$(PL) -g main_c -t halt -q -o lppf -c $(LPPF_SRC)lppf.pl
 
 getterms : lex.yy.c y.tab.c $(GTERMS_SRC)getterms.c
@@ -23,4 +23,4 @@ lex.yy.c : $(GTERMS_SRC)scanner.l
 	$(LEX) $(GTERMS_SRC)scanner.l	
 
 clean:
-	rm y.tab.c y.tab.h y.output lex.yy.c
+	rm y.tab.c y.tab.h y.output lex.yy.c lppf.tmp lppf.2.tmp

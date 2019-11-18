@@ -1,4 +1,6 @@
-p(1). p(2). p(3). q(2).
+% To do: #choose does not generate explanations yet
+
+p(1). p(2). p(3). q(1).
 a:=#choose{X : p(X), not q(X)}.
 
 
