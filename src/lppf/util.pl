@@ -124,3 +124,9 @@ termAndValue(Term, false, TermAndValue) :-
 termAndValue(Term, Value, TermAndValue) :-
 	!, format(atom(PrintableTerm), "~w", [Term]),
 	concat_atom([PrintableTerm, '=', Value], TermAndValue).
+
+termAndValueCompound(Term, true, Term):-!.
+termAndValueCompound(Term, false, TNegation):-
+	!, binop('-', [Term], TNegation).
+termAndValueCompound(Term, Value, TermAndValue):-
+	!,binop('=', [Term, Value], TermAndValue).
