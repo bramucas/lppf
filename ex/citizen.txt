@@ -1,12 +1,11 @@
-person(juancarlos).
-person(philip).
-country(spain).
-country(france).
+national(felipe,spain).
+national(pedro,spain).
+national(louis,france).
 
-king(spain):=juancarlos.
+king(spain):=felipe.
 
-% P is a regular citizen: we have no evidence that P is a king
-citizen(P,C) :- not king(C) = P, person(P), country(C).
+% a plebeian is not *a* king
+plebeian(P) :- national(P,C), not king(C) = P.
 
-% P is a subject: P is not THE king
-subject(P,C) :- king(C) != P, person(P), country(C).
+% a subject is not *the* king
+subject(P) :- national(P,C), king(C) != P.

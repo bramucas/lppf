@@ -1,0 +1,18 @@
+#script (python)
+import clingo
+def max(a,b):
+	a=int(str(a))
+	b=int(str(b))
+	if a>b:
+		m=a
+	else:
+		m=b
+	return m
+def main(prg):
+    prg.ground([("base", [])])
+    prg.solve() 
+#end.
+ 
+q(9,3).
+q(4,10).
+p(@max(X,Y)) :- q(X,Y).

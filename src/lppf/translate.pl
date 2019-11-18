@@ -14,7 +14,7 @@ translate :-
   repeat,
     ( fname(A),uniquevalue(A,UV),write_rule(UV),nl,fail; true),!,
   repeat,
-    ( rule(C,H,B), writelist(['% ',H,' :- ',B]),nl,
+    ( rule(C,H,B), %writelist(['% ',H,' :- ',B]),nl,
 	  set_count(varnum,0),
 	  t_rule(H,B,Rs),
 	  member(R,Rs),

@@ -1,0 +1,8 @@
+num(1). num(2). num(3). num(4). num(5). num(6).num(7).num(8).num(9).num(10).
+
+max(A,B):=A :- num(A),num(B),A>=B.
+max(A,B):=B :- num(A),num(B),B>=A.
+
+q(9,3).
+q(4,10).
+p( max(X,Y) ) :- q(X,Y).
