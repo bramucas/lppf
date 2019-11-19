@@ -139,6 +139,12 @@ t_term(A '\\ ' B,vaux(AUXVAR),Gs) :-
         ATOM=(vaux(AUXVAR)=A1 '\\ ' B1),
 	append_all([[ATOM],As,Bs],Gs).
 
+t_term(A..B,vaux(AUXVAR),Gs) :-
+	!,newvar(AUXVAR),	t_term(A,A1,As), t_term(B,B1,Bs),
+        ATOM=(vaux(AUXVAR)=A1..B1),
+	append_all([[ATOM],As,Bs],Gs).
+
+
 % functional terms
 
 t_term(fterm(F,Args),vaux(AUXVAR),[G|Gs]):-
