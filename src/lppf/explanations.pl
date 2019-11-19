@@ -49,7 +49,7 @@ findCauses :-
 			Body = [] -> true
 		;	
 			getCauses(ArgValues, VarNames, Body, Causes),
-			
+
 			replaceValues(ArgValues, VarNames, [OriginalTerm], [TermFired]),
 
 			(
@@ -97,7 +97,7 @@ addExplanation(Expl) :-
 %		- Causes (return)
 getCauses(ArgValues, VarNames, Body, TrimmedCauses) :-
 	simplifyBody(Body, SimplifiedBody),
-	replaceValues(ArgValues, VarNames, SimplifiedBody, Result),
+	replaceValues(ArgValues, VarNames, SimplifiedBody, Result),!,
 	evaluateCausesLabels(Result, Causes0),
 	trimCausesLabels(Causes0, Causes),
 	sort(Causes, TrimmedCauses).
@@ -156,9 +156,9 @@ replaceValues(ArgValues, VarNames, [Item|T], [NewItem|Result]) :-
 	getVarValues(ArgValues, VarNames, Args, Values),
 	NewItem =.. [F|Values],
 	replaceValues(ArgValues, VarNames, T, Result).
-replaceValues(_, _, [], []).
-replaceValues([], _, _, []).
-replaceValues(_, [], _, []).
+replaceValues(_, _, [], []):-!.
+replaceValues([], _, _, []):-!.
+replaceValues(_, [], _, []):-!.
 
 
 % getVarValues(ArgValues, VarNames, VarList, Result).
@@ -179,7 +179,7 @@ getVarValues(ArgValues, VarNames, [Var|T], [Var|Rest]) :-
 
 getVarValues(ArgValues, VarNames, [Var|T], [Value|Rest]) :-
 	nth0(Position, VarNames, Var),
-	nth0(Position, ArgValues, Value),
+	nth0(Position, ArgValues, Value),!,
 	getVarValues(ArgValues, VarNames, T, Rest).
 
 getVarValues(_, _, [], []).
