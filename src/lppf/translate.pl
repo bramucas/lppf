@@ -464,6 +464,8 @@ write_rule(R, Label/RuleNum/_LineNum) :-
 		subtract(BodyVariables, Args, ExtraArgs),
 		append(ExtraArgs, Args, All),
 
+
+
 		% Write fired rule head
 		concat_atom(['fired_',RuleNum],FiredFname),
 		FiredHead =.. [FiredFname | All],
@@ -493,10 +495,9 @@ write_rule(R, Label/RuleNum/_LineNum) :-
 		write_holds(Fname, TrueArgs ,FiredHead),
 
 		% Saving rule info with the ruleNumber
-		append(FiredVarsNoValue, [_Value2], All),
 		OriginalTerm =.. [Fname|TrueArgs],
 
-		assert(ruleInfo(RuleNum, Label, OriginalTerm, FiredVarsNoValue, Body))
+		assert(ruleInfo(RuleNum, Label, OriginalTerm, All, Body))
 	).
 
 % write_holds(Fname, FTrueArgs, FiredHead)
