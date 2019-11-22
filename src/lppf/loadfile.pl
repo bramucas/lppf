@@ -55,9 +55,9 @@ get_implicit_fnames:-
 	repeat,
 	  ( rule(_,H,B),
 	    get_implicit_fname(H),
-	    get_non0ary_fname(H),
-	    get_non0ary_fname(B),
-	    get_boolean_equalities(B),
+	    %get_non0ary_fname(H),
+	    %get_non0ary_fname(B),
+	    %get_boolean_equalities(B),
 	    fail
 	  ; true),!.
 
