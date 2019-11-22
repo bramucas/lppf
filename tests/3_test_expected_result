@@ -1,0 +1,20 @@
+Answer:1
+citizen(juancarlos,france)
+	country(france)*person(juancarlos)·citizen(juancarlos,france)
+citizen(philip,france)
+	country(france)*person(philip)·citizen(philip,france)
+citizen(philip,spain)
+	country(spain)*person(philip)·citizen(philip,spain)
+country(france)
+	country(france)
+country(spain)
+	country(spain)
+king(spain)=juancarlos
+	king(spain)=juancarlos
+person(juancarlos)
+	person(juancarlos)
+person(philip)
+	person(philip)
+subject(philip,spain)
+	country(spain)*(king(spain)=juancarlos*person(philip))·subject(philip,spain)
+1 solution

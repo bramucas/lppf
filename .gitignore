@@ -7,6 +7,11 @@
 # Examples directory
 !/ex
 
+# Tests directory and tests script
+!/tests
+!/run_tests.sh
+
+
 # Makefile
 !/Makefile
 

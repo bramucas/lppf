@@ -13,6 +13,9 @@
 :-op(700,yfx,'!=').
 :-op(710,fy,not).
 :-op(710,fy,'not -').
+:-op(410,yfx, '·').
+:-op(410,yfx, '..').
+
 
 %----- general dynamic predicates ----------------------------------------------
    
@@ -41,20 +44,23 @@ main_c :- unix(argv(Argv)),
 
 % if no arguments, print help
 main([]):- !,
-  write('lppf [options] filenames'),nl,
-  write('  --version      prints information header'),nl,
-  write('  -n <number>    computes at most <number> stable models. Default <number> is 1.'),nl,
-  write('                 When <number> is 0, computes all stable models.'),nl,
-  write('  -o <filename>  output file.'),nl,
-  write('  -t             just print the translation of functions into predicates.'),nl,
-  write('  -r, --report   builds an html report with graphs.'),nl,
-  write('  -sr            builds the report but does not open it automatically.'),nl,
-  write('  Verbosity modes:'),nl,
-  write('     --verbose 0:  ignores labels and #explain sentences. Does not produce explanations.'),nl,
-  write('     --verbose 1:  explanations only include labels (this is the default mode).'),nl,
-  write('     --verbose 2:  automatically labels all non-labeled facts in the program.'),nl,
-  write('     --verbose 3:  inludes all the information about the derivation in the explanations.'),nl,
-  write('     --verbose 4:  explanations will be printed in form of causal terms.'),nl,
+  writeln('lppf [options] filenames'),
+  writeln('  --version      prints information header'),
+  writeln('  -q             only prints the solutions, omiting other messages'),
+  writeln('  -n <number>    computes at most <number> stable models. Default <number> is 1.'),
+  writeln('                 When <number> is 0, computes all stable models.'),
+  writeln('  -o <filename>  output file.'),
+  writeln('  -t             just print the translation of functions into predicates.'),
+  writeln('  -r, --report   builds an html report with graphs.'),
+  writeln('  -sr            builds the report but does not open it automatically.'),
+  writeln('  Formatting modes:'),
+  writeln('     --format 0:       ignores labels and #explain sentences. Does not produce explanations.'),
+  writeln('     --format trees:   (default) explanations are shown as trees.'),
+  writeln('     --format cterms:  automatically labels all non-labeled facts in the program. This mode ignores textual labels.'),
+  writeln('  Head labeling:'),
+  writeln('     --labelHeads none:   (default) only the labels explicitily written by the programmer are used.'),
+  writeln('     --labelHeads facts:  automatically labels all non-labeled facts in the program.'),
+  writeln('     --labelHeads all:    automatically labels all non-labeled rules in the program.'),
   (opt(nohalt),!; halt(0)).
 
 main(Args):-
@@ -87,8 +93,12 @@ checkoptions([X|Xs],Ys):-
 	    asserta(opt(outfile(File))),checkoptions(Zs,Ys)
 	  ; X='-n',!,Xs=[N|Zs],
 	    asserta(opt(nummodels(N))),checkoptions(Zs,Ys)
-	  ; X='--verbose',!,Xs=[N|Zs],
-	  	concat_atom(['verbose ', N], VerboseOption),
+	  ; X='--format',!,Xs=[N|Zs],
+	  	concat_atom(['format ', N], VerboseOption),
+	  	option(VerboseOption, Opt),
+	    asserta(opt(Opt)),checkoptions(Zs,Ys)
+	  ; X='--labelHeads',!,Xs=[N|Zs],
+	  	concat_atom(['labelHeads ', N], VerboseOption),
 	  	option(VerboseOption, Opt),
 	    asserta(opt(Opt)),checkoptions(Zs,Ys).
 			    
@@ -96,6 +106,7 @@ checkoptions([X|Xs],[X|Ys]):- checkoptions(Xs,Ys).
 
 
 option('--version',version).
+option('-q', quiet).
 option('-t',translation).
 option('--nohalt',nohalt).
 
@@ -106,13 +117,15 @@ option('-r',report).
 option('--report',report).
 option('-sr',static_report).
 
-/* Verbosity modes */
-option('verbose 0', no_explanations).
-option('verbose 1', default).
-option('verbose 2', label_facts).
-option('verbose 3', complete).
-option('verbose 4', causal_terms) :-
-	checkoptions(['--verbose', '3'],_).
+/* Format modes */
+option('format 0', no_explanations).
+option('format trees', default).
+option('format cterms', causal_terms).
+
+/* Auto labeling modes */
+option('labelHeads none', default).
+option('labelHeads facts', label_facts).
+option('labelHeads all', complete).
 
 
 header :-

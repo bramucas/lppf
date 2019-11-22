@@ -1,0 +1,12 @@
+num(0..20).
+mcd(A,B):=mcd(B,A \ B)  :- num(A), num(B), A>B, A>0, B>0.
+mcd(A,B):=mcd(A,B \ A)  :- num(A), num(B), B>A, A>0, B>0.
+mcd(A,A):=A  :- num(A), A>0.
+mcd(A,0):=A  :- num(A), A>0.
+mcd(0,B):=B  :- num(B), B>0.
+
+q(9,3).
+q(4,10).
+p( mcd(X,Y) ) :- q(X,Y).
+%#show mcd/3.
+#show p/1.

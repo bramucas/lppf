@@ -1,0 +1,30 @@
+
+
+#script (python)
+import clingo
+
+def mcd(a,b):
+	a=int(str(a))
+	b=int(str(b))
+	if a>b and a>0 and b>0:
+		m=mcd(b,a % b)
+	elif b>a and a>0 and b>0:
+		m=mcd(a,b % a)
+	elif a==b and a>0:
+		m=a
+	elif a==0:
+		m=b
+	elif b==0:
+		m=a
+	else:
+		m=-100
+	return m
+
+def main(prg):
+    prg.ground([("base", [])])
+    prg.solve() 
+#end.
+ 
+q(9,3).
+q(4,10).
+p(@mcd(X,Y)) :- q(X,Y).

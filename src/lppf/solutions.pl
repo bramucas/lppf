@@ -9,14 +9,13 @@ show_next_solution:-
 	(T='UNSATISFIABLE',!
 	;T='SATISFIABLE',!
 	;incr(numsol,1), numsol(N), 
-	 nl,writelist(['Answer:',N]),nl,
+	 writelist(['Answer:',N]),nl,
 	 atom_to_term(T,Term,_),process_fact(Term),
 	 (D=0' ,!,get_next_fact; true),
-	 nl,
 
 	 (\+ opt(no_explanations), explain_solution; true),
 	 
-	 show_next_solution,nl
+	 show_next_solution
 	).
 show_next_solution.	
 
@@ -106,6 +105,8 @@ process_fact(Term):-
 explain_solution :- 
 	findCauses,
 	skipEquivalentExplanations,
+	% Debugging
+	% printCauses,nl,nl,
 	(
 		opt(report),!,
 		makeReportDir,
@@ -116,7 +117,8 @@ explain_solution :-
 		writeReport
 	;
 		opt(causal_terms),!,
-		makeCausalTerms
+		makeCausalTerms,
+		printCausalTerms
 	;
 		writeCauses
 	),
@@ -128,4 +130,10 @@ explain_solution :-
 	retractall(cause(_TF, _LF, _VF, _RN3, _L2)),
 	retractall(reportRow(_R)),	
 	retractall(toExplain(_Expl)),
+	retractall(causal_term(_T2, _CT)),
 	retractall(label(_FT, _LF2)).
+
+% For debugging
+printCauses :-
+	findall(C, (cause(TF,LF,VF,RN,CC), C=..[cause|[TF,LF,VF,RN,CC]]), Causes),
+	maplist(writeln, Causes).
