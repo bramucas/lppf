@@ -139,6 +139,12 @@ t_term(A '\\ ' B,vaux(AUXVAR),Gs) :-
         ATOM=(vaux(AUXVAR)=A1 '\\ ' B1),
 	append_all([[ATOM],As,Bs],Gs).
 
+t_term(A..B,vaux(AUXVAR),Gs) :-
+	!,newvar(AUXVAR),	t_term(A,A1,As), t_term(B,B1,Bs),
+        ATOM=(vaux(AUXVAR)=A1..B1),
+	append_all([[ATOM],As,Bs],Gs).
+
+
 % functional terms
 
 t_term(fterm(F,Args),vaux(AUXVAR),[G|Gs]):-
@@ -458,6 +464,8 @@ write_rule(R, Label/RuleNum/_LineNum) :-
 		subtract(BodyVariables, Args, ExtraArgs),
 		append(ExtraArgs, Args, All),
 
+
+
 		% Write fired rule head
 		concat_atom(['fired_',RuleNum],FiredFname),
 		FiredHead =.. [FiredFname | All],
@@ -487,10 +495,9 @@ write_rule(R, Label/RuleNum/_LineNum) :-
 		write_holds(Fname, TrueArgs ,FiredHead),
 
 		% Saving rule info with the ruleNumber
-		append(FiredVarsNoValue, [_Value2], All),
 		OriginalTerm =.. [Fname|TrueArgs],
 
-		assert(ruleInfo(RuleNum, Label, OriginalTerm, FiredVarsNoValue, Body))
+		assert(ruleInfo(RuleNum, Label, OriginalTerm, All, Body))
 	).
 
 % write_holds(Fname, FTrueArgs, FiredHead)

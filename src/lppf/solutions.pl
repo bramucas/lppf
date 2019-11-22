@@ -105,6 +105,8 @@ process_fact(Term):-
 explain_solution :- 
 	findCauses,
 	skipEquivalentExplanations,
+	% Debugging
+	% printCauses,nl,nl,
 	(
 		opt(report),!,
 		makeReportDir,
@@ -115,7 +117,8 @@ explain_solution :-
 		writeReport
 	;
 		opt(causal_terms),!,
-		makeCausalTerms
+		makeCausalTerms,
+		printCausalTerms
 	;
 		writeCauses
 	),
@@ -127,4 +130,10 @@ explain_solution :-
 	retractall(cause(_TF, _LF, _VF, _RN3, _L2)),
 	retractall(reportRow(_R)),	
 	retractall(toExplain(_Expl)),
+	retractall(causal_term(_T2, _CT)),
 	retractall(label(_FT, _LF2)).
+
+% For debugging
+printCauses :-
+	findall(C, (cause(TF,LF,VF,RN,CC), C=..[cause|[TF,LF,VF,RN,CC]]), Causes),
+	maplist(writeln, Causes).

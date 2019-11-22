@@ -72,12 +72,13 @@ char  	*strval; /* For returning a string */
 %type <strval> aggregate
 %type <strval> string
 %type <strval> label
+%type <strval> rangeterm
 
 %left IF
 %left OR
 %left NOT
 %right '=' LEQ GEQ NEQ '>' '<'
-%left '-' '+'
+%left '-' '+' DOTS
 %left '*' '/' '\\'
 %left UMINUS     /* unary minus */
 
@@ -191,12 +192,16 @@ term :
   | fterm				{$$=$1;}
   | aterm				{$$=$1;}
   | '(' term ')'		{$$=$2;}
+  | rangeterm {$$=$1;}
   ;
 
 fterm :
     id					{$$=strCat("fterm(",$1,",[])",NULL);}
   | id '(' termlist ')'	{$$=strCat("fterm(",$1,",[",$3,"])",NULL);}
   ;
+
+rangeterm :
+  term DOTS term  {$$=strCat("(",$1,"..",$3,")",NULL);}
 
 aterm :
     term '+' term		{$$=strCat("(",$1," + ",$3,")",NULL);}
