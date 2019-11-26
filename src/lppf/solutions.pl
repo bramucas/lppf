@@ -1,4 +1,4 @@
-:- dynamic sol_fact/3, numsol/1, cause/3, explainCount/1, label/2.
+:- dynamic sol_fact/3, numsol/1, cause/3, explainCount/1, label/2, just_explain/1.
 
 display_solutions(NSol):-
 	set_count(numsol,0),
@@ -61,7 +61,7 @@ process_fact(Term):-
 	  	ExplainTerm =.. [F2|Values],
 
 	  	assert(explain),
-	  	assert(justExplain(ExplainTerm))
+	  	assert(just_explain(ExplainTerm))
 	;
 		% Label rules
 		Term =.. [F|ValuesAndLabelNumber],
@@ -125,7 +125,7 @@ explain_solution :-
 
 	retractall(explainCount(_C)),
 	retractall(fired(_RN1, _V1)),
-	retractall(justExplain(_ET)),
+	retractall(just_explain(_ET)),
 	retractall(graphPath(_T, _V2, _L1, _RN2, _RIP)),
 	retractall(cause(_TF, _LF, _VF, _RN3, _L2)),
 	retractall(reportRow(_R)),	

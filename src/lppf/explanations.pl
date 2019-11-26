@@ -1,4 +1,4 @@
-:- dynamic toExplain/1, graphId/1.
+:- dynamic toExplain/1, graphId/1, graphData/5, cause/5, explainCount/1, causal_term/2.
 
 
 
@@ -78,10 +78,6 @@ findCauses :-
 
 
 addExplanation(Expl) :-
-	\+ current_predicate(cause/5),
-	assert(Expl).
-
-addExplanation(Expl) :-
 	\+ Expl,!,
 	assert(Expl).
 
@@ -107,17 +103,12 @@ getCauses(ArgValues, VarNames, Body, TrimmedCauses) :-
 % causes for a term on the body don't make fail this function.
 %	- Body: it is supposed to be a simplifiedBody and have no variables without value.
 %	- Causes (return)
-evaluateCauses(_, []) :-
-	\+ current_predicate(cause/5),!.
-
 evaluateCauses([HTerm|Tail], [Cause|MoreCauses]) :-
-	current_predicate(cause/5),
 	cause(HTerm, Label, Value, RuleNumber, TermCauses),
 	Cause =.. [cause|[HTerm, Label, Value, RuleNumber, TermCauses]],
 	evaluateCauses(Tail, MoreCauses).
 
 evaluateCauses([HTerm|Tail], MoreCauses) :-
-	current_predicate(cause/5),
 	\+ cause(HTerm, _Label, _Value, _RuleNumber, _TermCauses),
 	evaluateCauses(Tail, MoreCauses).
 
@@ -125,7 +116,6 @@ evaluateCauses([],[]).
 
 % If cause has not label
 evaluateCausesLabels([HTerm|Tail], MoreCauses) :-
-	current_predicate(cause/5),
 	cause(HTerm, no_label, _Value, _RuleNumber, TermCauses),!,
 	evaluateCausesLabels(Tail, TailCauses),
 	(
@@ -137,7 +127,6 @@ evaluateCausesLabels([HTerm|Tail], MoreCauses) :-
 
 % If cause has label
 evaluateCausesLabels([HTerm|Tail], [Cause|MoreCauses]) :-
-	current_predicate(cause/5),
 	cause(HTerm, Label, Value, RuleNumber, TermCauses),
 	Cause =.. [cause|[HTerm, Label, Value, RuleNumber, TermCauses]],
 	evaluateCausesLabels(Tail, MoreCauses).
@@ -324,50 +313,43 @@ refCode(C) :- C>96, C<122.	% a-z
 refCode(C) :- C>64, C<91.	% A-Z
 
 
-
-
-
 %%%%%%%%%%%%% ASCII trees output %%%%%%%%%%%%%
 
 % writeCauses
 % Write ASCII trees for explanations.
 writeCauses :-
-	% Writting causes
-	(
-	  current_predicate(cause/5) ->
-		(
-		  current_predicate(explain/0) ->
-		  	(
-		  	  current_predicate(justExplain/1) ->
-		  	  (
-		  		repeat,
-				(
-			      justExplain(Term),
-				  toExplain(cause(Term, Label, Value, _RuleNumber, Causes)),
-				  writeCauseTree(Term, Label, Value, Causes, 0),nl,
-				  incr(explainCount,1),
-				  fail
-				; true
-				),
-
-				explainCount(ExplainCount),
-				writelist([ExplainCount, ' ocurrences explained.']),nl,nl,
-				!
-		  	  	)
-		  	;
-		  	  nl,write('Wrong explain sentences'),nl,!
-			)	
-		;
-			repeat,
+	(	% If there is some #explain sentence
+		explain,
+	  	(
+	  		repeat,
 			(
-				toExplain(cause(Term, Label, Value, _RuleNumber2, Causes)),
-				writeCauseTree(Term, Label, Value, Causes, 0),nl,
-				fail
-			;	true
-			),!
-		)
-	;
-		true
+		    	just_explain(Term),
+			  	toExplain(cause(Term, Label, Value, _RuleNumber, Causes)),
+			  	writeCauseTree(Term, Label, Value, Causes, 0),nl,
+			  	incr(explainCount,1),
+			  	fail
+			; 
+				true
+			),
+
+			explainCount(ExplainCount),
+			writelist([ExplainCount, ' ocurrences explained.']),nl,nl,
+			!
+	  	;
+	  	  	% There is some #explain sentence but it does not match any derived atom.
+	  	  	\+ just_explain(_),nl,write('Wrong explain sentences'),nl,!
+		)	
+	;	
+		% If there is not any #explain sentence
+		\+ explain,
+		repeat,
+		(
+			toExplain(cause(Term, Label, Value, _RuleNumber2, Causes)),
+			writeCauseTree(Term, Label, Value, Causes, 0),nl,
+			fail
+		;	
+			true
+		),!
 	).
 
 
@@ -463,12 +445,12 @@ makeReportDir :-
 
 writeReport :-
 	(
-	  current_predicate(cause/5) ->
 	  	numsol(N),
 	  	(
-		opt(outfile(OutFile)) ->
+			opt(outfile(OutFile)),
 	  		concat_atom([OutFile, '/'], OutDir)
-	  	;
+	  	;	
+	  		\+ opt(outfile(_)),
   			OutDir = ''
 	  	),
 	  	concat_atom([OutDir,'report',N], CompletePath),
@@ -478,7 +460,7 @@ writeReport :-
 	  	makeGraphs,nl,
 
 	  	(
-	  		\+ current_predicate(graphData/5),
+	  		\+ graphData(_,_,_,_,_),
 	  		nl, write('Error making graphs'), nl
 	  	;
 		  	writelist(['Making html report',N]),
@@ -491,7 +473,9 @@ writeReport :-
 			  	shell(Command)
 		  	)
 	  	)
-	; 
+	;
+		% If there is no causes
+		\+ cause(_,_,_,_,_),
 		write('Report cant be written'),nl
 	).
 
@@ -501,9 +485,10 @@ makeReport :-
 
 	% Copy resources
   	(
-		opt(outfile(OutFile)) ->
+		opt(outfile(OutFile)),
 		concat_atom([OutFile, '/'], OutDir)
 	;
+		\+ opt(outfile(_)),
 		OutDir = ''
 	),
 	concat_atom([OutDir, ReportName,'/.resources'], ResDirectory),
@@ -516,10 +501,10 @@ makeReport :-
 	
 	
 	(
-		current_predicate(explainCount/1),
 		explainCount(ExplainCount),
 		concat_atom([ExplainCount, ' ocurrences explained.'], ExplainingResults)
 	;
+		\+ explainCount(_),
 		ExplainingResults = 'All ocurrences explained.'
 	),
 	
@@ -557,11 +542,11 @@ makeReport :-
 	),!,
 
 	(
-	current_predicate(reportRow/1) ->
 		findall(X, reportRow(X), RowList),
 		concat_atom(RowList, Rows),
 		replaceString(AuxHtmlReport, '#Terms#', Rows, ReadyHtml)
 	;
+		\+ reportRow(_),
 		replaceString(AuxHtmlReport, '#Terms#', 'No results', ReadyHtml)
 	),
 	write(ReportFile, ReadyHtml),
@@ -569,13 +554,13 @@ makeReport :-
 
 makeGraphs :-
 	(
-	  current_predicate(explain/0) ->
+		% There is some #explain sentence
+	  	explain,
 		(
-		  current_predicate(justExplain/1) ->
-		  (
+
 		  	repeat,
 			(
-				justExplain(Term),
+				just_explain(Term),
 				toExplain(cause(Term, Label, Value, RuleNumber, Causes)),
 				
 				makeGraph(Term, Label, Value, RuleNumber, Causes),
@@ -587,11 +572,13 @@ makeGraphs :-
 			explainCount(ExplainCount),
 			writelist([ExplainCount, ' ocurrences explained.']),nl,
 			!	
-		  )
 		;
-			true
+			% There is some #explain sentence but it does not match any derived atom.
+	  	  	\+ just_explain(_),nl,write('Wrong explain sentences'),nl,!
 		)	
 	;
+		% There is any #explain sentence
+		\+ explain,
 		repeat,
 		(
 			toExplain(cause(Term, Label, Value, RuleNumber, Causes)),
@@ -661,15 +648,14 @@ makeDirectory(Path) :-
 %%%%%%%%%%%%% Causal terms %%%%%%%%%%%%%
 
 makeCausalTerms :-
-	current_predicate(cause/5),
 	(
-		current_predicate(explain/0),
+		% If there is some #explain sentence
+		explain,
 	  	(
-	  	  current_predicate(justExplain/1),
-	  	  (
+	  		% Explaining everything derived from #explain sentences (T from just_explain(T))
 	  		repeat,
 			(
-		    	justExplain(Term),
+		    	just_explain(Term),
 			  	causalTerm(Term,  CTerm),
 
 				% Assert causal term
@@ -679,11 +665,13 @@ makeCausalTerms :-
 			  	fail
 			; 	true
 			)
-	  	   )
 	  	;
-	  	  nl,write('Wrong explain sentences'),nl,!
+	  		% There is some #explain sentence but it does not match any derived atom.
+			\+ just_explain(_), nl, write('Wrong explain sentences'), nl,!
 		)	
 	;
+		% If there isn't any #explain setnence then explain everything
+		\+ explain,
 		repeat,
 		(
 			% Get causal term
@@ -701,12 +689,12 @@ makeCausalTerms :-
 printCausalTerms :-
 	% Printing causal terms
 	(
-		current_predicate(causal_term/2) ->
-			findall([T,CT], causal_term(T,CT), CTList),
-			sort(CTList, SortedCTList),
-			maplist(printct, SortedCTList)
-		;
-			true
+		findall([T,CT], causal_term(T,CT), CTList),
+		sort(CTList, SortedCTList),
+		maplist(printct, SortedCTList)
+	;
+		\+ causal_term(_,_),
+		true
 	).
 
 printct([T, CT]) :-
@@ -776,7 +764,6 @@ causalJoint([HCause|TailCauses], [J|JTail]) :-
 % Cuando es sin labels
 skipEquivalentExplanations :-
 	(opt(complete);opt(causal_terms)),!,
-	current_predicate(cause/5),
 	repeat,
 	(
 		cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes),
@@ -790,7 +777,6 @@ skipEquivalentExplanations :-
 skipEquivalentExplanations :-
 	\+ opt(complete), \+ opt(causal_terms),
 	\+ opt(minimal_explanations),!,
-	current_predicate(cause/5),
 	repeat,
 	(
 		cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes),
@@ -805,7 +791,6 @@ skipEquivalentExplanations :-
 skipEquivalentExplanations :-
 	\+ opt(complete), \+ opt(causal_terms),
 	opt(minimal_explanations),!,
-	current_predicate(cause/5),
 	repeat,
 	(
 		cause(TermFired, LabelFired, ValueFired, RuleNumber, Causes),

@@ -1,4 +1,4 @@
-:- dynamic varnum/1, prednum/1, body/2.
+:- dynamic varnum/1, prednum/1, body/2, explain/0.
 varnum(0).
 prednum(0).
 
@@ -452,13 +452,15 @@ write_rule(R, Label/RuleNum/_LineNum) :-
 	Head =.. [RuleFname | Args],
 	(
 		% auxiliary predicates
-		sub_string(RuleFname,_,3,_,"aux") ->
+		sub_string(RuleFname,_,3,_,"aux"),
 		write(Head)
 	;
 		% nholds choice predicates
-		sub_string(RuleFname,_,6,_,"nholds") ->
+		sub_string(RuleFname,_,6,_,"nholds"),
 		write(Head)
 	;
+		\+ sub_string(RuleFname,_,3,_,"aux"),
+		\+ sub_string(RuleFname,_,6,_,"nholds"),
 		% Adding extra arguments
 		body_variables(Body, BodyVariables),
 		subtract(BodyVariables, Args, ExtraArgs),
@@ -483,12 +485,9 @@ write_rule(R, Label/RuleNum/_LineNum) :-
 	write('.'),nl,
 
 	(
-		sub_string(RuleFname,_,3,_,"aux") ->
-		true
-	;
-		sub_string(RuleFname,_,6,_,"nholds") ->
-		true	
-	;
+		\+ sub_string(RuleFname,_,3,_,"aux"),
+		\+ sub_string(RuleFname,_,6,_,"nholds"),
+
 		% Write holds rule
 		append(TrueArgs, [_Value], Args),
 		concat_atom(['holds_',Fname],RuleFname), 
