@@ -106,8 +106,7 @@ binop(_F,[X],X):-!.
 binop(F,[X|L],T):-binop(F,L,T0),T =.. [F,X,T0].
 
 
-% replaceString(OriginalString, StringToReplace, Replacement, Result)
-replaceString(OriginalString, StringToReplace, Replacement, Result) :-
+replace_string(OriginalString, StringToReplace, Replacement, Result) :-
 	atomic_list_concat(AuxString, StringToReplace, OriginalString), 
 	atomic_list_concat(AuxString, Replacement, Result).
 
@@ -116,17 +115,11 @@ sort_atoms_by_length(Atoms, ByLength) :-
         keysort(Pairs, Sorted),
         pairs_values(Sorted, ByLength).
 
-termAndValue(Term, true, PrintableTerm):-
+term_value(Term, true, PrintableTerm):-
 	!, format(atom(PrintableTerm), "~w", [Term]).
-termAndValue(Term, false, TermAndValue) :-
+term_value(Term, false, TermAndValue) :-
 	!, format(atom(PrintableTerm), "~w", [Term]),
 	concat_atom(['-', PrintableTerm], TermAndValue).
-termAndValue(Term, Value, TermAndValue) :-
+term_value(Term, Value, TermAndValue) :-
 	!, format(atom(PrintableTerm), "~w", [Term]),
 	concat_atom([PrintableTerm, '=', Value], TermAndValue).
-
-termAndValueCompound(Term, true, Term):-!.
-termAndValueCompound(Term, false, TNegation):-
-	!, binop('-', [Term], TNegation).
-termAndValueCompound(Term, Value, TermAndValue):-
-	!,binop('=', [Term, Value], TermAndValue).
