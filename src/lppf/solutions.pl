@@ -84,7 +84,7 @@ process_fact(Term):-
 
 		% Process Label
 		append(BodyVariables, ArgNames, Names),
-		processLabel(Label, _, FiredValues, Names, LabelFired),
+		process_label(Label, _, FiredValues, Names, LabelFired),
 
 		assert(label(FiredTerm, LabelFired))
 
