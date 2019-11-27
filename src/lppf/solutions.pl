@@ -103,33 +103,33 @@ process_fact(Term):-
 	).
 
 explain_solution :- 
-	findCauses,
-	skipEquivalentExplanations,
+	find_causes,
+	skip_equivalent_explanations,
 	% Debugging
 	% printCauses,nl,nl,
 	(
 		opt(report),!,
-		makeReportDir,
-		writeReport
+		make_report_dir,
+		write_report
 	;
 		opt(static_report),!,
-		makeReportDir,
-		writeReport
+		make_report_dir,
+		write_report
 	;
 		opt(causal_terms),!,
-		makeCausalTerms,
-		printCausalTerms
+		make_causal_terms,
+		print_causal_terms
 	;
-		writeCauses
+		write_causes
 	),
 
-	retractall(explainCount(_C)),
+	retractall(explain_count(_C)),
 	retractall(fired(_RN1, _V1)),
 	retractall(just_explain(_ET)),
 	retractall(graphPath(_T, _V2, _L1, _RN2, _RIP)),
 	retractall(cause(_TF, _LF, _VF, _RN3, _L2)),
-	retractall(reportRow(_R)),	
-	retractall(toExplain(_Expl)),
+	retractall(report_row(_R)),	
+	retractall(to_explain(_Expl)),
 	retractall(causal_term(_T2, _CT)),
 	retractall(label(_FT, _LF2)).
 

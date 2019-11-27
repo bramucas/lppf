@@ -1,4 +1,4 @@
-:- dynamic varnum/1, prednum/1, body/2, explain/0.
+:- dynamic varnum/1, prednum/1, body/2, explain/0, rule_info/5.
 varnum(0).
 prednum(0).
 
@@ -496,7 +496,7 @@ write_rule(R, Label/RuleNum/_LineNum) :-
 		% Saving rule info with the ruleNumber
 		OriginalTerm =.. [Fname|TrueArgs],
 
-		assert(ruleInfo(RuleNum, Label, OriginalTerm, All, Body))
+		assert(rule_info(RuleNum, Label, OriginalTerm, All, Body))
 	).
 
 % write_holds(Fname, FTrueArgs, FiredHead)
